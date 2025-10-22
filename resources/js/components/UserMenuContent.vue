@@ -3,7 +3,7 @@ import UserInfo from '@/components/UserInfo.vue';
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import type { User } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
-import { LogOut, Settings, LayoutGrid, UserRoundPlus, Hand, Ham } from 'lucide-vue-next';
+import { Hand, LayoutGrid, LogOut, Settings, UserRoundPlus } from 'lucide-vue-next';
 
 interface Props {
     user: User;

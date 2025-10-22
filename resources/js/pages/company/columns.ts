@@ -4,13 +4,14 @@ import type { ColumnDef } from '@tanstack/vue-table';
 import { ArrowUpDown } from 'lucide-vue-next';
 import { h } from 'vue';
 
-export interface Permission {
+export interface Company {
     id: number;
     name: string;
-    created_at: Date;
+    email: string;
+    number: string;
 }
 
-export const permissionColumns: ColumnDef<Permission>[] = [
+export const companyColumns: ColumnDef<Company>[] = [
     {
         accessorKey: 'name',
         header: ({ column }) =>
@@ -25,28 +26,21 @@ export const permissionColumns: ColumnDef<Permission>[] = [
         cell: (info) => info.getValue(),
     },
     {
-        accessorKey: 'created_at',
-        header: ({ column }) =>
-            h(
-                Button,
-                {
-                    variant: 'ghost',
-                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-                },
-                () => ['Creado', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-            ),
-        cell: ({ row }) => {
-            // Formatear la fecha para que sea más legible
-            return new Date(row.getValue('created_at')).toLocaleDateString();
-        },
+        accessorKey: 'email',
+        header: 'Email',
+        cell: (info) => info.getValue(),
+    },
+    {
+        accessorKey: 'number',
+        header: 'Número',
+        cell: (info) => info.getValue(),
     },
     {
         id: 'actions',
         header: 'Acciones',
         cell: ({ row }) =>
             h(ActionCell, {
-                // Se cambia el recurso a 'permissions'
-                resource: 'permissions',
+                resource: 'company',
                 id: row.original.id,
                 show: true,
                 edit: true,

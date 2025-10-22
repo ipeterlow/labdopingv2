@@ -70,24 +70,24 @@ class UserController extends Controller
         ]);
     }
 
-public function update(Request $request, User $user)
-{
-    $data = $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email,' . $user->id,
-        'password' => 'nullable|string|min:6|confirmed',
-    ]);
+    public function update(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,'.$user->id,
+            'password' => 'nullable|string|min:6|confirmed',
+        ]);
 
-    if (empty($data['password'])) {
-        unset($data['password']);
+        if (empty($data['password'])) {
+            unset($data['password']);
+        }
+
+        $user->update($data);
+
+        // ✅ Redirige con flash en lugar de render
+        return redirect()->route('users.edit', $user->id)
+            ->with('success', 'Los datos fueron actualizados correctamente');
     }
-
-    $user->update($data);
-
-    // ✅ Redirige con flash en lugar de render
-    return redirect()->route('users.edit', $user->id)
-                     ->with('success', 'Los datos fueron actualizados correctamente');
-}
 
     public function destroy(User $user)
     {

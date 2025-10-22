@@ -8,15 +8,14 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { CheckCircle, XCircle } from 'lucide-vue-next';
 import { ref } from 'vue';
 
-
 // Props del permiso
 const props = defineProps<{
-    permission: { id: number; name: string;};
+    permission: { id: number; name: string };
 }>();
 
 // Formulario
 const form = useForm({
-    name: props.permission .name,
+    name: props.permission.name,
 });
 
 // Alert
@@ -70,7 +69,6 @@ const submit = () => {
                     <Input id="name" type="text" v-model="form.name" />
                     <p v-if="form.errors.name" class="text-sm text-red-600">{{ form.errors.name }}</p>
                 </div>
-
 
                 <Button type="submit" class="mt-2" :disabled="form.processing">
                     <span v-if="form.processing">Actualizando…</span>

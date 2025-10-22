@@ -73,6 +73,7 @@ class PermissionController extends Controller
     {
         //
         $permission = Permission::find($permission->id);
+
         return Inertia::render('admin/permission/Edit', [
             'permission' => $permission,
         ]);
@@ -85,10 +86,11 @@ class PermissionController extends Controller
     {
         //
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:150', 'unique:permissions,name,' . $permission->id],
+            'name' => ['required', 'string', 'max:150', 'unique:permissions,name,'.$permission->id],
         ]);
         $permission->name = $validated['name'];
         $permission->save();
+
         return redirect()->route('permissions.edit', $permission->id)->with('success', 'Permiso actualizado.');
     }
 

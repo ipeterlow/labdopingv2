@@ -8,17 +8,16 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { CheckCircle, XCircle } from 'lucide-vue-next';
 import { ref } from 'vue';
 
-// Props del usuario
+// Props de la empresa
 const props = defineProps<{
-    user: { id: number; name: string; email: string };
+    company: { id: number; name: string; email: string; number: string };
 }>();
 
 // Formulario
 const form = useForm({
-    name: props.user.name,
-    email: props.user.email,
-    password: '',
-    password_confirmation: '',
+    name: props.company.name,
+    email: props.company.email,
+    number: props.company.number,
 });
 
 // Alert
@@ -28,7 +27,7 @@ const alertMessage = ref('');
 
 // Submit
 const submit = () => {
-    form.put(route('users.update', props.user.id), {
+    form.put(route('company.update', props.company.id), {
         preserveScroll: true,
         onSuccess: () => {
             alertType.value = 'success';
@@ -45,14 +44,12 @@ const submit = () => {
     });
 };
 </script>
-
 <template>
-    <Head title="Edit User" />
+    <Head title="Editar Empresa" />
     <AppLayout>
-        <div class="p-4">
-            <h1 class="mb-4 text-2xl font-semibold">Edit User</h1>
+        <div class="w-full max-w-5xl space-y-4 p-6">
+            <h1 class="text-2xl font-semibold">Editar Empresa</h1>
 
-            <!-- ALERT -->
             <div class="fixed top-4 right-4 z-50 w-96">
                 <transition name="fade">
                     <Alert v-if="showAlert" :variant="alertType === 'success' ? 'default' : 'destructive'" class="shadow-md">
@@ -65,36 +62,39 @@ const submit = () => {
                 </transition>
             </div>
 
-            <!-- FORMULARIO -->
-            <form class="w-8/12 space-y-4" @submit.prevent="submit">
-                <div class="space-y-2">
-                    <Label for="name">Nombre</Label>
-                    <Input id="name" type="text" v-model="form.name" />
-                    <p v-if="form.errors.name" class="text-sm text-red-600">{{ form.errors.name }}</p>
-                </div>
+            <form @submit.prevent="submit" class="space-y-4">
+                <div class="space-y-4 rounded-md border bg-card p-6">
+                    <div class="space-y-2">
+                        <Label for="name">Nombre</Label>
+                        <Input id="name" type="text" v-model="form.name" :aria-invalid="!!form.errors.name || undefined" />
+                        <p v-if="form.errors.name" class="text-sm text-red-600">
+                            {{ form.errors.name }}
+                        </p>
+                    </div>
 
-                <div class="space-y-2">
-                    <Label for="email">Email</Label>
-                    <Input id="email" type="email" v-model="form.email" />
-                    <p v-if="form.errors.email" class="text-sm text-red-600">{{ form.errors.email }}</p>
-                </div>
+                    <div class="space-y-2">
+                        <Label for="email">Email</Label>
+                        <Input id="email" type="email" v-model="form.email" :aria-invalid="!!form.errors.email || undefined" />
+                        <p v-if="form.errors.email" class="text-sm text-red-600">
+                            {{ form.errors.email }}
+                        </p>
+                    </div>
 
-                <div class="space-y-2">
-                    <Label for="password">Contraseña</Label>
-                    <Input id="password" type="password" v-model="form.password" />
-                    <p v-if="form.errors.password" class="text-sm text-red-600">{{ form.errors.password }}</p>
-                </div>
+                    <div class="space-y-2">
+                        <Label for="number">Número</Label>
+                        <Input id="number" type="text" v-model="form.number" :aria-invalid="!!form.errors.number || undefined" />
+                        <p v-if="form.errors.number" class="text-sm text-red-600">
+                            {{ form.errors.number }}
+                        </p>
+                    </div>
 
-                <div class="space-y-2">
-                    <Label for="password_confirmation">Confirmar Contraseña</Label>
-                    <Input id="password_confirmation" type="password" v-model="form.password_confirmation" />
-                    <p v-if="form.errors.password_confirmation" class="text-sm text-red-600">{{ form.errors.password_confirmation }}</p>
+                    <div class="mt-7">
+                        <Button type="submit" :disabled="form.processing" class="w-full sm:w-auto">
+                            <span v-if="form.processing">Actualizando…</span>
+                            <span v-else>Guardar cambios</span>
+                        </Button>
+                    </div>
                 </div>
-
-                <Button type="submit" class="mt-2" :disabled="form.processing">
-                    <span v-if="form.processing">Actualizando…</span>
-                    <span v-else>Guardar cambios</span>
-                </Button>
             </form>
         </div>
     </AppLayout>
