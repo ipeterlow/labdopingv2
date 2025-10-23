@@ -1,9 +1,10 @@
 <?php
 
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\DopingSampleController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\CompanyController;
 use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -22,6 +23,8 @@ Route::post('/users', [UserController::class, 'store'])
 Route::resource('users', UserController::class);
 
 Route::resource('roles', RoleController::class);
+
+Route::resource('dopingsample', DopingSampleController::class);
 
 Route::resource('permissions', PermissionController::class);
 

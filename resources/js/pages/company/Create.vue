@@ -2,8 +2,8 @@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
 import { CheckCircle, XCircle } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 // shadcn-vue components
 import { Button } from '@/components/ui/button';

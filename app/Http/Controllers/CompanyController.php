@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\Company;
 
 class CompanyController extends Controller
 {
@@ -13,9 +13,9 @@ class CompanyController extends Controller
      */
     public function index(Request $request)
     {
-                $search = $request->input('search');
+        $search = $request->input('search');
 
-        $companies = Company::select('id', 'name', 'number','email')
+        $companies = Company::select('id', 'name', 'number', 'email')
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('id', 'like', "%{$search}%")
@@ -32,8 +32,6 @@ class CompanyController extends Controller
             'search' => $search,
         ]);
     }
-
-
 
     /**
      * Show the form for creating a new resource.
@@ -65,6 +63,7 @@ class CompanyController extends Controller
     public function show(string $id)
     {
         $company = Company::findOrFail($id);
+
         return Inertia::render('company/Show', [
             'company' => $company,
         ]);
@@ -76,6 +75,7 @@ class CompanyController extends Controller
     public function edit(string $id)
     {
         $company = Company::findOrFail($id);
+
         return Inertia::render('company/Edit', [
             'company' => $company,
         ]);
@@ -94,6 +94,7 @@ class CompanyController extends Controller
         ]);
         $company = Company::findOrFail($id);
         $company->update($validated);
+
         return redirect()->route('company.edit', $id)->with('success', 'Empresa actualizada exitosamente.');
     }
 
@@ -103,6 +104,7 @@ class CompanyController extends Controller
     public function destroy(string $id)
     {
         Company::destroy($id);
+
         return redirect()->route('company.index')->with('success', 'Empresa eliminada exitosamente.');
     }
 }
