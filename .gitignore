@@ -22,7 +22,12 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
-
+# Ignorar los .ttf cacheados (asumiendo que tienen un guion bajo)
+*_*.ttf
+# Ignorar caché de fuentes de DomPDF
+*.ufm
+*.ufm.json
+installed-fonts.json
 
 # ----------------------------------------------------------------
 # Node.js / npm

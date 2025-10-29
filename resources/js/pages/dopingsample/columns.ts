@@ -75,11 +75,12 @@ export const sampleColumns: ColumnDef<Sample>[] = [
         header: 'Acciones',
         cell: ({ row }) =>
             h(ActionCell, {
-                resource: 'company',
+                resource: 'dopingsample',
                 id: row.original.id,
                 show: true,
                 edit: true,
                 destroy: true,
+                pdf: true,
             }),
     },
 ];

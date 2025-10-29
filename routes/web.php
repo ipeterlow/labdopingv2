@@ -25,6 +25,7 @@ Route::resource('users', UserController::class);
 Route::resource('roles', RoleController::class);
 
 Route::resource('dopingsample', DopingSampleController::class);
+Route::get('/dopingsample/{sample}/pdf', [DopingSampleController::class, 'download'])->name('samples.pdf');
 
 Route::resource('permissions', PermissionController::class);
 

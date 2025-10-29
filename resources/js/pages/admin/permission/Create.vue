@@ -6,6 +6,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SendHorizonal } from 'lucide-vue-next';
 
 const form = useForm({
     permiso: '',
@@ -27,20 +28,21 @@ const submit = () => {
 
             <form @submit.prevent="submit" class="space-y-4">
                 <!-- Permiso -->
-                <div class="space-y-2">
-                    <Label for="permiso">Permiso</Label>
-                    <Input id="permiso" type="text" v-model="form.permiso" :aria-invalid="!!form.errors.permiso || undefined" />
-                    <p v-if="form.errors.permiso" class="text-sm text-red-600">
-                        {{ form.errors.permiso }}
-                    </p>
+                <div class="space-y-4 rounded-md border bg-card p-6">
+                    <div class="space-y-2">
+                        <Label for="permiso">Permiso</Label>
+                        <Input id="permiso" type="text" v-model="form.permiso" :aria-invalid="!!form.errors.permiso || undefined" />
+                        <p v-if="form.errors.permiso" class="text-sm text-red-600">
+                            {{ form.errors.permiso }}
+                        </p>
+                    </div>
                 </div>
-
-                <!-- Botón -->
-                <Button type="submit" :disabled="form.processing">
-                    <span v-if="form.processing">Guardando…</span>
-                    <span v-else>Crear permiso</span>
-                </Button>
             </form>
+            <Button type="submit" :disabled="form.processing">
+                <SendHorizonal class="mr-2 h-4 w-4" />
+                <span v-if="form.processing">Guardando…</span>
+                <span v-else>Crear permiso</span>
+            </Button>
         </div>
     </AppLayout>
 </template>

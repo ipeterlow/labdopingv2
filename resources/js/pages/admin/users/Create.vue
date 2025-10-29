@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { useForm } from 'laravel-precognition-vue-inertia';
+import { SendHorizonal } from 'lucide-vue-next';
 
 // 1) Inicializa el form: método, url y datos iniciales
 const form = useForm('post', '/users', {
@@ -34,70 +35,74 @@ const submit = () => {
 
             <form class="w-8/12 space-y-4" @submit.prevent="submit">
                 <!-- NAME -->
-                <div class="space-y-2">
-                    <Label for="name">Nombre</Label>
-                    <Input
-                        id="name"
-                        type="text"
-                        autocomplete="name"
-                        v-model="form.name"
-                        @change="form.validate('name')"
-                        :aria-invalid="form.invalid('name') || undefined"
-                    />
-                    <p v-if="form.invalid('name')" class="text-sm text-red-600">
-                        {{ form.errors.name }}
-                    </p>
-                </div>
 
-                <!-- EMAIL -->
-                <div class="space-y-2">
-                    <Label for="email">Email</Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        autocomplete="email"
-                        v-model="form.email"
-                        @change="form.validate('email')"
-                        :aria-invalid="form.invalid('email') || undefined"
-                    />
-                    <p v-if="form.invalid('email')" class="text-sm text-red-600">
-                        {{ form.errors.email }}
-                    </p>
-                </div>
+                <div class="space-y-4 rounded-md border bg-card p-6">
+                    <div class="space-y-2">
+                        <Label for="name">Nombre</Label>
+                        <Input
+                            id="name"
+                            type="text"
+                            autocomplete="name"
+                            v-model="form.name"
+                            @change="form.validate('name')"
+                            :aria-invalid="form.invalid('name') || undefined"
+                        />
+                        <p v-if="form.invalid('name')" class="text-sm text-red-600">
+                            {{ form.errors.name }}
+                        </p>
+                    </div>
 
-                <!-- PASSWORD -->
-                <div class="space-y-2">
-                    <Label for="password">Contraseña</Label>
-                    <Input
-                        id="password"
-                        type="password"
-                        autocomplete="new-password"
-                        v-model="form.password"
-                        @change="form.validate('password')"
-                        :aria-invalid="form.invalid('password') || undefined"
-                    />
-                    <p v-if="form.invalid('password')" class="text-sm text-red-600">
-                        {{ form.errors.password }}
-                    </p>
-                </div>
+                    <!-- EMAIL -->
+                    <div class="space-y-2">
+                        <Label for="email">Email</Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            autocomplete="email"
+                            v-model="form.email"
+                            @change="form.validate('email')"
+                            :aria-invalid="form.invalid('email') || undefined"
+                        />
+                        <p v-if="form.invalid('email')" class="text-sm text-red-600">
+                            {{ form.errors.email }}
+                        </p>
+                    </div>
 
-                <!-- PASSWORD CONFIRMATION -->
-                <div class="space-y-2">
-                    <Label for="password_confirmation">Confirmar Contraseña</Label>
-                    <Input
-                        id="password_confirmation"
-                        type="password"
-                        autocomplete="new-password"
-                        v-model="form.password_confirmation"
-                        @change="form.validate('password_confirmation')"
-                        :aria-invalid="form.invalid('password_confirmation') || undefined"
-                    />
-                    <p v-if="form.invalid('password_confirmation')" class="text-sm text-red-600">
-                        {{ form.errors.password_confirmation }}
-                    </p>
+                    <!-- PASSWORD -->
+                    <div class="space-y-2">
+                        <Label for="password">Contraseña</Label>
+                        <Input
+                            id="password"
+                            type="password"
+                            autocomplete="new-password"
+                            v-model="form.password"
+                            @change="form.validate('password')"
+                            :aria-invalid="form.invalid('password') || undefined"
+                        />
+                        <p v-if="form.invalid('password')" class="text-sm text-red-600">
+                            {{ form.errors.password }}
+                        </p>
+                    </div>
+
+                    <!-- PASSWORD CONFIRMATION -->
+                    <div class="space-y-2">
+                        <Label for="password_confirmation">Confirmar Contraseña</Label>
+                        <Input
+                            id="password_confirmation"
+                            type="password"
+                            autocomplete="new-password"
+                            v-model="form.password_confirmation"
+                            @change="form.validate('password_confirmation')"
+                            :aria-invalid="form.invalid('password_confirmation') || undefined"
+                        />
+                        <p v-if="form.invalid('password_confirmation')" class="text-sm text-red-600">
+                            {{ form.errors.password_confirmation }}
+                        </p>
+                    </div>
                 </div>
 
                 <Button type="submit" class="mt-2" :disabled="form.processing || form.validating">
+                    <SendHorizonal class="mr-2 h-4 w-4" />
                     <span v-if="form.validating">Validando…</span>
                     <span v-else-if="form.processing">Creando…</span>
                     <span v-else>Crear cuenta</span>

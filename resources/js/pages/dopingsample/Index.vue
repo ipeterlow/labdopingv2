@@ -12,16 +12,17 @@ const data = ref<Sample[]>([...((page.props.sample as unknown as Sample[]) ?? []
 </script>
 
 <template>
-
     <Head title="Muestras Doping" />
     <AppLayout>
         <div class="p-4">
             <h1 class="mb-4 text-2xl font-semibold">Muestras Doping</h1>
 
             <div class="flex justify-end">
-                <Link :href="route ? route('dopingsample.create') : '/dopingsample/create'"
-                    :class="buttonVariants({ variant: 'default', size: 'default' })">
-                Crear Muestra Doping
+                <Link
+                    :href="route ? route('dopingsample.create') : '/dopingsample/create'"
+                    :class="buttonVariants({ variant: 'default', size: 'default' })"
+                >
+                    Crear Muestra Doping
                 </Link>
             </div>
 

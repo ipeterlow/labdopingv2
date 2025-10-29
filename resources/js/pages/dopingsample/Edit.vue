@@ -13,33 +13,49 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Check, ChevronsUpDown, Plus, SendHorizonal, XCircle } from 'lucide-vue-next';
+import { Check, ChevronsUpDown, SendHorizonal, XCircle } from 'lucide-vue-next';
 
-// Props desde Inertia (precargadas)
+// --- Props de Edición ---
 type Company = { id: number; name: string };
-const props = defineProps<{ companies: Company[] }>();
 
-// Form
+type Sample = {
+    id: number;
+    reception_id: number;
+    company_id: number;
+    sent_at: string | null;
+    received_at: string | null;
+    received_at_hour: string | null;
+    description: string | null;
+    shipping_type: string;
+    custom_shipping_type: string | null;
+};
+
 type SampleItem = {
-    external: string;
+    id: number;
+    external: string; // <-- El controlador ahora envía 'external'
     type: 'orina' | 'pelo' | 'saliva' | 'suero' | '';
     category: 'A' | 'B' | '';
 };
 
+const props = defineProps<{
+    companies: Company[];
+    sample: Sample;
+    sampleGroup: SampleItem[];
+}>();
+
+// --- Formulario ---
 const form = useForm({
-    company_id: null as number | null,
-    sent_at: '',
-    received_at: '',
-    received_at_hour: '',
-    description: '',
-
-    shipping_type: '',
-    custom_shipping_type: '',
-
-    samples: [] as SampleItem[],
+    company_id: props.sample.company_id || '',
+    sent_at: props.sample.sent_at || '',
+    received_at: props.sample.received_at || '',
+    received_at_hour: props.sample.received_at_hour || '',
+    description: props.sample.description || '',
+    shipping_type: props.sample.shipping_type || '',
+    custom_shipping_type: props.sample.custom_shipping_type || '',
+    samples: props.sampleGroup,
 });
 
-// Alert
+// Alert (sin cambios)
 const showAlert = ref(false);
 const alertType = ref<'success' | 'error'>('success');
 const alertMessage = ref('');
@@ -50,54 +66,36 @@ function flash(kind: 'success' | 'error', msg: string) {
     setTimeout(() => (showAlert.value = false), 3000);
 }
 
-// --- Empresas: Combobox 100% shadcn ---
+// Combobox Empresas (sin cambios)
 const companiesOpen = ref(false);
-function onOpenChange(v: boolean) {
-    companiesOpen.value = v;
-}
-
+function onOpenChange(v: boolean) { companiesOpen.value = v; }
 const selectedCompany = computed(() => props.companies.find((c) => c.id === form.company_id) || null);
-
-// Filtrado local con v-model en CommandInput
-const companyQuery = ref('');
+const companyQuery = ref(selectedCompany.value?.name ?? '');
 const filteredCompanies = computed(() => {
     const q = companyQuery.value.trim().toLowerCase();
     if (!q) return props.companies;
     return props.companies.filter((c) => c.name.toLowerCase().includes(q));
 });
-
 function chooseCompany(c: Company) {
     form.company_id = c.id;
     companyQuery.value = c.name;
     companiesOpen.value = false;
 }
-
 const companyError = computed(() => form.errors.company_id);
 
-// Muestras dinámicas
-const amountToAdd = ref<number | undefined>(undefined);
-function addSamples() {
-    const n = Number(amountToAdd.value ?? 0);
-    if (!Number.isFinite(n) || n <= 0) return;
-    for (let i = 0; i < n; i++) {
-        form.samples.push({ external: '', type: '', category: '' });
-    }
-    amountToAdd.value = undefined;
-}
+
+// Muestras (sin cambios)
 function removeSample(idx: number) {
     form.samples.splice(idx, 1);
 }
-
 const isOtherShipping = computed(() => form.shipping_type === 'otros');
 
-// Submit
+// Submit (sin cambios)
 function submit() {
-    form.post(route('dopingsample.store'), {
+    form.put(route('dopingsample.update', props.sample.reception_id), {
         preserveScroll: true,
         onSuccess: () => {
-            form.reset();
-            companyQuery.value = '';
-            flash('success', 'Las muestras fueron creadas correctamente.');
+            flash('success', 'Las muestras fueron actualizadas correctamente.');
         },
         onError: () => {
             flash('error', 'Revisa los campos con errores.');
@@ -107,12 +105,13 @@ function submit() {
 </script>
 
 <template>
-    <Head title="Agregar Muestras" />
+
+    <Head title="Editar Muestras" />
     <AppLayout>
-        <!-- Alert flotante -->
         <div class="fixed top-4 right-4 z-50 w-96">
             <transition name="fade">
-                <Alert v-if="showAlert" :variant="alertType === 'success' ? 'default' : 'destructive'" class="shadow-md">
+                <Alert v-if="showAlert" :variant="alertType === 'success' ? 'default' : 'destructive'"
+                    class="shadow-md">
                     <div class="flex items-center gap-2">
                         <component :is="alertType === 'success' ? Check : XCircle" class="h-5 w-5" />
                         <AlertTitle>{{ alertType === 'success' ? 'Éxito' : 'Error' }}</AlertTitle>
@@ -123,51 +122,36 @@ function submit() {
         </div>
 
         <div class="w-full max-w-6xl space-y-6 p-6">
-            <h1 class="text-2xl font-semibold">Agregar Muestras</h1>
+            <h1 class="text-2xl font-semibold">Editar Muestras (Recepción: {{ props.sample.reception_id }})</h1>
 
             <form @submit.prevent="submit" class="space-y-6">
-                <!-- Información general -->
                 <div class="space-y-5 rounded-md border bg-card p-6">
                     <h2 class="text-lg font-medium">Información general</h2>
-
-                    <!-- Empresas (Combobox shadcn) -->
                     <div class="space-y-2">
                         <Label for="company">Empresas</Label>
-
                         <Popover :open="companiesOpen" @update:open="onOpenChange">
                             <PopoverTrigger as-child>
-                                <Button
-                                    id="company"
-                                    variant="outline"
-                                    role="combobox"
-                                    :aria-expanded="companiesOpen"
-                                    class="w-full justify-between"
-                                    :aria-invalid="!!companyError || undefined"
-                                >
+                                <Button id="company" variant="outline" role="combobox" :aria-expanded="companiesOpen"
+                                    class="w-full justify-between" :aria-invalid="!!companyError || undefined">
                                     <span class="truncate">
                                         {{ selectedCompany ? selectedCompany.name : 'Selecciona una empresa…' }}
                                     </span>
                                     <ChevronsUpDown class="ml-2 h-4 w-4 opacity-50" />
                                 </Button>
                             </PopoverTrigger>
-
                             <PopoverContent class="w-[--radix-popover-trigger-width] p-0">
                                 <Command>
-                                    <!-- ✅ v-model correcto en CommandInput -->
-                                    <CommandInput v-model="companyQuery" placeholder="Buscar empresa…" class="h-9" autocomplete="off" />
+                                    <CommandInput v-model="companyQuery" placeholder="Buscar empresa…" class="h-9"
+                                        autocomplete="off" />
                                     <CommandList>
                                         <CommandEmpty>No se encontraron empresas</CommandEmpty>
                                         <CommandGroup>
                                             <ScrollArea class="h-64">
-                                                <CommandItem
-                                                    v-for="c in filteredCompanies"
-                                                    :key="c.id"
-                                                    :value="c.name"
-                                                    class="cursor-pointer"
-                                                    @mousedown.prevent
-                                                    @select="() => chooseCompany(c)"
-                                                >
-                                                    <Check class="mr-2 h-4 w-4" :class="selectedCompany?.id === c.id ? 'opacity-100' : 'opacity-0'" />
+                                                <CommandItem v-for="c in filteredCompanies" :key="c.id" :value="c.name"
+                                                    class="cursor-pointer" @mousedown.prevent
+                                                    @select="() => chooseCompany(c)">
+                                                    <Check class="mr-2 h-4 w-4"
+                                                        :class="selectedCompany?.id === c.id ? 'opacity-100' : 'opacity-0'" />
                                                     {{ c.name }}
                                                 </CommandItem>
                                             </ScrollArea>
@@ -176,48 +160,46 @@ function submit() {
                                 </Command>
                             </PopoverContent>
                         </Popover>
-
                         <p v-if="companyError" class="text-sm text-red-600">{{ companyError }}</p>
                     </div>
-
                     <div class="grid gap-4 sm:grid-cols-3">
                         <div class="space-y-2">
                             <Label for="sent_at">Fecha envío</Label>
-                            <Input id="sent_at" type="date" v-model="form.sent_at" :aria-invalid="!!form.errors.sent_at || undefined" />
+                            <Input id="sent_at" type="date" v-model="form.sent_at"
+                                :aria-invalid="!!form.errors.sent_at || undefined" />
                             <p v-if="form.errors.sent_at" class="text-sm text-red-600">{{ form.errors.sent_at }}</p>
                         </div>
                         <div class="space-y-2">
                             <Label for="received_at">Fecha recepción</Label>
-                            <Input id="received_at" type="date" v-model="form.received_at" :aria-invalid="!!form.errors.received_at || undefined" />
-                            <p v-if="form.errors.received_at" class="text-sm text-red-600">{{ form.errors.received_at }}</p>
+                            <Input id="received_at" type="date" v-model="form.received_at"
+                                :aria-invalid="!!form.errors.received_at || undefined" />
+                            <p v-if="form.errors.received_at" class="text-sm text-red-600">{{ form.errors.received_at }}
+                            </p>
                         </div>
                         <div class="space-y-2">
                             <Label for="received_at_hour">Hora recepción</Label>
-                            <Input
-                                id="received_at_hour"
-                                type="time"
-                                v-model="form.received_at_hour"
-                                :aria-invalid="!!form.errors.received_at_hour || undefined"
-                            />
-                            <p v-if="form.errors.received_at_hour" class="text-sm text-red-600">{{ form.errors.received_at_hour }}</p>
+                            <Input id="received_at_hour" type="time" v-model="form.received_at_hour"
+                                :aria-invalid="!!form.errors.received_at_hour || undefined" />
+                            <p v-if="form.errors.received_at_hour" class="text-sm text-red-600">{{
+                                form.errors.received_at_hour }}</p>
                         </div>
                     </div>
-
                     <div class="space-y-2">
                         <Label for="description">Observación</Label>
-                        <Textarea id="description" v-model="form.description" rows="4" :aria-invalid="!!form.errors.description || undefined" />
+                        <Textarea id="description" v-model="form.description" rows="4"
+                            :aria-invalid="!!form.errors.description || undefined" />
                         <p v-if="form.errors.description" class="text-sm text-red-600">{{ form.errors.description }}</p>
                     </div>
                 </div>
 
-                <!-- Información de envío -->
                 <div class="space-y-5 rounded-md border bg-card p-6">
                     <h2 class="text-lg font-medium">Información de envío</h2>
-
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div class="space-y-2">
                             <Label>Tipo de envío</Label>
+
                             <Select v-model="form.shipping_type">
+
                                 <SelectTrigger :aria-invalid="!!form.errors.shipping_type || undefined">
                                     <SelectValue placeholder="Seleccionar…" />
                                 </SelectTrigger>
@@ -234,36 +216,23 @@ function submit() {
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
-                            <p v-if="form.errors.shipping_type" class="text-sm text-red-600">{{ form.errors.shipping_type }}</p>
+                            <p v-if="form.errors.shipping_type" class="text-sm text-red-600">{{
+                                form.errors.shipping_type }}</p>
                         </div>
-
                         <div class="space-y-2">
                             <Label for="custom_shipping_type">Otros</Label>
-                            <Input
-                                id="custom_shipping_type"
-                                type="text"
-                                v-model="form.custom_shipping_type"
+                            <Input id="custom_shipping_type" type="text" v-model="form.custom_shipping_type"
                                 :disabled="!isOtherShipping"
-                                :placeholder="isOtherShipping ? 'Especifica el tipo de envío…' : '—'"
-                            />
+                                :placeholder="isOtherShipping ? 'Especifica el tipo de envío…' : '—'" />
                         </div>
                     </div>
                 </div>
 
-                <!-- Listado de muestras -->
                 <div class="space-y-5 rounded-md border bg-card p-6">
-                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <h2 class="text-lg font-medium">Listado de muestras</h2>
-                        <div class="flex items-center gap-2">
-                            <Input type="number" min="1" v-model.number="amountToAdd" placeholder="Cantidad…" class="w-40" />
-                            <Button type="button" class="bg-emerald-600 text-white hover:bg-emerald-700" @click="addSamples">
-                                <Plus class="mr-2 h-4 w-4" /> Agregar Muestras
-                            </Button>
-                        </div>
-                    </div>
+                    <h2 class="text-lg font-medium">Listado de muestras</h2>
 
                     <div class="space-y-4">
-                        <div v-for="(s, idx) in form.samples" :key="idx" class="rounded-md border p-4">
+                        <div v-for="(s, idx) in form.samples" :key="s.id" class="rounded-md border p-4">
                             <div class="mb-3 text-sm font-medium text-muted-foreground">Muestra #{{ idx + 1 }}</div>
                             <div class="grid gap-4 sm:grid-cols-3">
                                 <div class="space-y-2">
@@ -315,8 +284,8 @@ function submit() {
                 <div class="pt-2">
                     <Button type="submit" :disabled="form.processing" class="w-full sm:w-auto">
                         <SendHorizonal class="mr-2 h-4 w-4" />
-                        <span v-if="form.processing">Enviando…</span>
-                        <span v-else>Enviar</span>
+                        <span v-if="form.processing">Actualizando…</span>
+                        <span v-else>Actualizar</span>
                     </Button>
                 </div>
             </form>
@@ -325,6 +294,7 @@ function submit() {
 </template>
 
 <style scoped>
+/* Estilos (sin cambios) */
 .fade-enter-active,
 .fade-leave-active {
     transition: opacity 0.2s;

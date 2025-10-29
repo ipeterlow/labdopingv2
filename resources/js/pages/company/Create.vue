@@ -2,7 +2,7 @@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { CheckCircle, XCircle } from 'lucide-vue-next';
+import { CheckCircle, SendHorizonal, XCircle } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 // shadcn-vue components
@@ -83,13 +83,13 @@ const submit = () => {
                             {{ form.errors.number }}
                         </p>
                     </div>
-
-                    <div class="mt-7">
-                        <Button type="submit" :disabled="form.processing" class="w-full sm:w-auto">
-                            <span v-if="form.processing">Guardando…</span>
-                            <span v-else>Crear empresa</span>
-                        </Button>
-                    </div>
+                </div>
+                <div class="mt-7">
+                    <Button type="submit" :disabled="form.processing" class="w-full sm:w-auto">
+                        <SendHorizonal class="mr-2 h-4 w-4" />
+                        <span v-if="form.processing">Guardando…</span>
+                        <span v-else>Crear empresa</span>
+                    </Button>
                 </div>
             </form>
         </div>

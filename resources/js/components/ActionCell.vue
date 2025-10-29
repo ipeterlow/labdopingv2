@@ -1,8 +1,19 @@
 <script setup lang="ts">
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'; // 👈 1. Importar componentes
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { router } from '@inertiajs/vue3';
-import { MoreHorizontal } from 'lucide-vue-next';
+import { FileDown, MoreHorizontal } from 'lucide-vue-next';
 
 const props = defineProps<{
     resource: string;
@@ -10,49 +21,62 @@ const props = defineProps<{
     show?: boolean;
     edit?: boolean;
     destroy?: boolean;
+    pdf?: boolean;
 }>();
 
-// 👇 CAMBIO 3: Ya no necesitamos emitir eventos, lo eliminamos.
-// const emit = defineEmits<{ ... }>();
+const goToEdit = () => router.visit(route(`${props.resource}.edit`, props.id));
+const goToView = () => router.visit(route(`${props.resource}.show`, props.id));
 
-const goToEdit = () => {
-    // Esta función está bien como está
-    router.visit(route(`${props.resource}.edit`, props.id));
-};
-
-const goToView = () => {
-    // Esta función también está bien
-    router.visit(route(`${props.resource}.show`, props.id));
-};
-
+// 2. Modificada: Se quita el confirm()
 const destroyItem = () => {
-    if (confirm('¿Estás seguro de eliminar este registro?')) {
-        // Usamos la ruta dinámica con el 'resource' prop
-        router.delete(route(`${props.resource}.destroy`, props.id), {
-            // 👇 CAMBIO 1: El cambio más importante.
-            // Le decimos a Inertia que SÍ debe recargar las props de la página.
-            preserveState: false,
-            preserveScroll: true,
+    router.delete(route(`${props.resource}.destroy`, props.id), {
+        preserveState: false,
+        preserveScroll: true,
+    });
+};
 
-            // 👇 CAMBIO 2: El callback onSuccess ya no es necesario,
-            // porque la actualización de la tabla será automática.
-        });
-    }
+const downloadPdf = () => {
+    const url = route('samples.pdf', props.id);
+    window.open(url, '_blank');
 };
 </script>
 
 <template>
-    <DropdownMenu>
-        <DropdownMenuTrigger as-child>
-            <Button variant="ghost" class="h-8 w-8 p-0">
-                <MoreHorizontal class="h-4 w-4" />
-            </Button>
-        </DropdownMenuTrigger>
+    <AlertDialog>
+        <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+                <Button variant="ghost" class="h-8 w-8 p-0">
+                    <MoreHorizontal class="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end">
-            <DropdownMenuItem v-if="show !== false" @click="goToView">Ver</DropdownMenuItem>
-            <DropdownMenuItem v-if="edit !== false" @click="goToEdit">Editar</DropdownMenuItem>
-            <DropdownMenuItem v-if="destroy !== false" class="text-red-600" @click="destroyItem">Eliminar</DropdownMenuItem>
-        </DropdownMenuContent>
-    </DropdownMenu>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem v-if="show !== false" @click="goToView"> Ver </DropdownMenuItem>
+
+                <DropdownMenuItem v-if="edit !== false" @click="goToEdit"> Editar </DropdownMenuItem>
+
+                <AlertDialogTrigger v-if="destroy !== false" as-child>
+                    <DropdownMenuItem class="text-red-600" @select.prevent> Eliminar </DropdownMenuItem>
+                </AlertDialogTrigger>
+
+                <DropdownMenuItem v-if="pdf || $attrs.id === 'actions'" @click="downloadPdf">
+                    <FileDown class="h-4 w-4" />
+                    Comp. Recepcion
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Esta acción no se puede deshacer. Esto eliminará permanentemente el registro de nuestros servidores.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction @click="destroyItem"> Continuar </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
 </template>
