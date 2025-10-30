@@ -24,7 +24,6 @@ class DopingSampleController extends Controller
         $samples = Sample::join('companies', 'samples.company_id', '=', 'companies.id')
             ->join('sample_status', 'samples.status', '=', 'sample_status.id')
             ->select('samples.id', 'samples.external_id', 'samples.internal_id', 'samples.category', 'sample_status.name as status_name', 'samples.type', 'samples.sent_at', 'samples.received_at', 'samples.analyzed_at', 'samples.sample_taken_at', 'samples.results_at', 'companies.name as company_name')
-
             ->orderBy('samples.id', 'desc')
             ->get();
 
@@ -156,7 +155,7 @@ class DopingSampleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-public function edit(string $id)
+    public function edit(string $id)
     {
         // 1. Obtener la muestra en la que se hizo clic
         $clickedSample = Sample::findOrFail($id);
@@ -167,13 +166,13 @@ public function edit(string $id)
         if ($receptionId) {
             // Si el ID NO es null, busca la "muestra principal" de ese grupo
             $mainSampleData = Sample::where('reception_id', $receptionId)
-                                    ->whereNotNull('received_at') // Busca una que SÍ tenga datos
-                                    ->first();
+                ->whereNotNull('received_at') // Busca una que SÍ tenga datos
+                ->first();
         }
-        
-        // Fallback: Si no se encontró (o si $receptionId era null), 
+
+        // Fallback: Si no se encontró (o si $receptionId era null),
         // usamos la muestra en la que se hizo clic (aunque venga con nulls).
-        if (!$mainSampleData) {
+        if (! $mainSampleData) {
             $mainSampleData = $clickedSample;
         }
 
@@ -183,7 +182,7 @@ public function edit(string $id)
             // Si el ID NO es null, carga el grupo completo
             $sampleGroup = Sample::where('reception_id', $receptionId)
                 //  ¡¡¡ARREGLO DE 'external' AQUÍ!!!
-                ->select('id', 'external_id as external', 'type', 'category') 
+                ->select('id', 'external_id as external', 'type', 'category')
                 ->orderBy('id')
                 ->get();
         } else {
@@ -195,10 +194,9 @@ public function edit(string $id)
                     'external' => $clickedSample->external_id, // Renombramos aquí también
                     'type' => $clickedSample->type,
                     'category' => $clickedSample->category,
-                ]
+                ],
             ]);
         }
-
 
         // 4. Cargar Empresas
         $companies = Company::orderBy('name')->get(['id', 'name']);
@@ -209,18 +207,18 @@ public function edit(string $id)
         // Procesar fecha y hora de recepción
         $receivedAtDate = null;
         $receivedAtHour = $mainSampleData->received_at_hour;
-        
+
         if ($mainSampleData->received_at) {
             if (is_string($mainSampleData->received_at)) {
                 // Si es string, extraer fecha y hora
                 $receivedAtDate = date('Y-m-d', strtotime($mainSampleData->received_at));
-                if (!$receivedAtHour) {
+                if (! $receivedAtHour) {
                     $receivedAtHour = date('H:i', strtotime($mainSampleData->received_at));
                 }
             } else {
                 // Si es Carbon, usar sus métodos
                 $receivedAtDate = $mainSampleData->received_at->format('Y-m-d');
-                if (!$receivedAtHour) {
+                if (! $receivedAtHour) {
                     $receivedAtHour = $mainSampleData->received_at->format('H:i');
                 }
             }
@@ -231,7 +229,7 @@ public function edit(string $id)
             'id' => $mainSampleData->id,
             'reception_id' => $mainSampleData->reception_id,
             'company_id' => $mainSampleData->company_id,
-            'sent_at' => $mainSampleData->sent_at ? 
+            'sent_at' => $mainSampleData->sent_at ?
                 (is_string($mainSampleData->sent_at) ? date('Y-m-d', strtotime($mainSampleData->sent_at)) : $mainSampleData->sent_at->format('Y-m-d')) : null,
             'received_at' => $receivedAtDate,
             'received_at_hour' => $receivedAtHour,
@@ -284,7 +282,7 @@ public function edit(string $id)
         }
 
         // 3. Combinar fecha y hora en un timestamp completo
-        $receivedAtTimestamp = $validated['received_at'] . ' ' . $validated['received_at_hour'] . ':00';
+        $receivedAtTimestamp = $validated['received_at'].' '.$validated['received_at_hour'].':00';
 
         // 4. Usar una transacción para asegurar la integridad de los datos
         DB::transaction(function () use ($validated, $reception_id, $shippingType, $receivedAtTimestamp) {

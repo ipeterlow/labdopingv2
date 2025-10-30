@@ -68,7 +68,9 @@ function flash(kind: 'success' | 'error', msg: string) {
 
 // Combobox Empresas (sin cambios)
 const companiesOpen = ref(false);
-function onOpenChange(v: boolean) { companiesOpen.value = v; }
+function onOpenChange(v: boolean) {
+    companiesOpen.value = v;
+}
 const selectedCompany = computed(() => props.companies.find((c) => c.id === form.company_id) || null);
 const companyQuery = ref(selectedCompany.value?.name ?? '');
 const filteredCompanies = computed(() => {
@@ -82,7 +84,6 @@ function chooseCompany(c: Company) {
     companiesOpen.value = false;
 }
 const companyError = computed(() => form.errors.company_id);
-
 
 // Muestras (sin cambios)
 function removeSample(idx: number) {
@@ -105,13 +106,11 @@ function submit() {
 </script>
 
 <template>
-
     <Head title="Editar Muestras" />
     <AppLayout>
         <div class="fixed top-4 right-4 z-50 w-96">
             <transition name="fade">
-                <Alert v-if="showAlert" :variant="alertType === 'success' ? 'default' : 'destructive'"
-                    class="shadow-md">
+                <Alert v-if="showAlert" :variant="alertType === 'success' ? 'default' : 'destructive'" class="shadow-md">
                     <div class="flex items-center gap-2">
                         <component :is="alertType === 'success' ? Check : XCircle" class="h-5 w-5" />
                         <AlertTitle>{{ alertType === 'success' ? 'Éxito' : 'Error' }}</AlertTitle>
@@ -131,8 +130,14 @@ function submit() {
                         <Label for="company">Empresas</Label>
                         <Popover :open="companiesOpen" @update:open="onOpenChange">
                             <PopoverTrigger as-child>
-                                <Button id="company" variant="outline" role="combobox" :aria-expanded="companiesOpen"
-                                    class="w-full justify-between" :aria-invalid="!!companyError || undefined">
+                                <Button
+                                    id="company"
+                                    variant="outline"
+                                    role="combobox"
+                                    :aria-expanded="companiesOpen"
+                                    class="w-full justify-between"
+                                    :aria-invalid="!!companyError || undefined"
+                                >
                                     <span class="truncate">
                                         {{ selectedCompany ? selectedCompany.name : 'Selecciona una empresa…' }}
                                     </span>
@@ -141,17 +146,20 @@ function submit() {
                             </PopoverTrigger>
                             <PopoverContent class="w-[--radix-popover-trigger-width] p-0">
                                 <Command>
-                                    <CommandInput v-model="companyQuery" placeholder="Buscar empresa…" class="h-9"
-                                        autocomplete="off" />
+                                    <CommandInput v-model="companyQuery" placeholder="Buscar empresa…" class="h-9" autocomplete="off" />
                                     <CommandList>
                                         <CommandEmpty>No se encontraron empresas</CommandEmpty>
                                         <CommandGroup>
                                             <ScrollArea class="h-64">
-                                                <CommandItem v-for="c in filteredCompanies" :key="c.id" :value="c.name"
-                                                    class="cursor-pointer" @mousedown.prevent
-                                                    @select="() => chooseCompany(c)">
-                                                    <Check class="mr-2 h-4 w-4"
-                                                        :class="selectedCompany?.id === c.id ? 'opacity-100' : 'opacity-0'" />
+                                                <CommandItem
+                                                    v-for="c in filteredCompanies"
+                                                    :key="c.id"
+                                                    :value="c.name"
+                                                    class="cursor-pointer"
+                                                    @mousedown.prevent
+                                                    @select="() => chooseCompany(c)"
+                                                >
+                                                    <Check class="mr-2 h-4 w-4" :class="selectedCompany?.id === c.id ? 'opacity-100' : 'opacity-0'" />
                                                     {{ c.name }}
                                                 </CommandItem>
                                             </ScrollArea>
@@ -165,29 +173,28 @@ function submit() {
                     <div class="grid gap-4 sm:grid-cols-3">
                         <div class="space-y-2">
                             <Label for="sent_at">Fecha envío</Label>
-                            <Input id="sent_at" type="date" v-model="form.sent_at"
-                                :aria-invalid="!!form.errors.sent_at || undefined" />
+                            <Input id="sent_at" type="date" v-model="form.sent_at" :aria-invalid="!!form.errors.sent_at || undefined" />
                             <p v-if="form.errors.sent_at" class="text-sm text-red-600">{{ form.errors.sent_at }}</p>
                         </div>
                         <div class="space-y-2">
                             <Label for="received_at">Fecha recepción</Label>
-                            <Input id="received_at" type="date" v-model="form.received_at"
-                                :aria-invalid="!!form.errors.received_at || undefined" />
-                            <p v-if="form.errors.received_at" class="text-sm text-red-600">{{ form.errors.received_at }}
-                            </p>
+                            <Input id="received_at" type="date" v-model="form.received_at" :aria-invalid="!!form.errors.received_at || undefined" />
+                            <p v-if="form.errors.received_at" class="text-sm text-red-600">{{ form.errors.received_at }}</p>
                         </div>
                         <div class="space-y-2">
                             <Label for="received_at_hour">Hora recepción</Label>
-                            <Input id="received_at_hour" type="time" v-model="form.received_at_hour"
-                                :aria-invalid="!!form.errors.received_at_hour || undefined" />
-                            <p v-if="form.errors.received_at_hour" class="text-sm text-red-600">{{
-                                form.errors.received_at_hour }}</p>
+                            <Input
+                                id="received_at_hour"
+                                type="time"
+                                v-model="form.received_at_hour"
+                                :aria-invalid="!!form.errors.received_at_hour || undefined"
+                            />
+                            <p v-if="form.errors.received_at_hour" class="text-sm text-red-600">{{ form.errors.received_at_hour }}</p>
                         </div>
                     </div>
                     <div class="space-y-2">
                         <Label for="description">Observación</Label>
-                        <Textarea id="description" v-model="form.description" rows="4"
-                            :aria-invalid="!!form.errors.description || undefined" />
+                        <Textarea id="description" v-model="form.description" rows="4" :aria-invalid="!!form.errors.description || undefined" />
                         <p v-if="form.errors.description" class="text-sm text-red-600">{{ form.errors.description }}</p>
                     </div>
                 </div>
@@ -199,7 +206,6 @@ function submit() {
                             <Label>Tipo de envío</Label>
 
                             <Select v-model="form.shipping_type">
-
                                 <SelectTrigger :aria-invalid="!!form.errors.shipping_type || undefined">
                                     <SelectValue placeholder="Seleccionar…" />
                                 </SelectTrigger>
@@ -216,14 +222,17 @@ function submit() {
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
-                            <p v-if="form.errors.shipping_type" class="text-sm text-red-600">{{
-                                form.errors.shipping_type }}</p>
+                            <p v-if="form.errors.shipping_type" class="text-sm text-red-600">{{ form.errors.shipping_type }}</p>
                         </div>
                         <div class="space-y-2">
                             <Label for="custom_shipping_type">Otros</Label>
-                            <Input id="custom_shipping_type" type="text" v-model="form.custom_shipping_type"
+                            <Input
+                                id="custom_shipping_type"
+                                type="text"
+                                v-model="form.custom_shipping_type"
                                 :disabled="!isOtherShipping"
-                                :placeholder="isOtherShipping ? 'Especifica el tipo de envío…' : '—'" />
+                                :placeholder="isOtherShipping ? 'Especifica el tipo de envío…' : '—'"
+                            />
                         </div>
                     </div>
                 </div>

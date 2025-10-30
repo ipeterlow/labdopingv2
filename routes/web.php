@@ -3,6 +3,7 @@
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DopingSampleController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ReportSampleController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
@@ -26,6 +27,17 @@ Route::resource('roles', RoleController::class);
 
 Route::resource('dopingsample', DopingSampleController::class);
 Route::get('/dopingsample/{sample}/pdf', [DopingSampleController::class, 'download'])->name('samples.pdf');
+
+Route::prefix('documents')->group(function () {
+    Route::post('/upload-informe', [ReportSampleController::class, 'uploadInforme'])
+        ->name('documents.upload.informe');
+    Route::post('/upload-cadena', [ReportSampleController::class, 'uploadCadena'])
+        ->name('documents.upload.cadena');
+    Route::get('/download/{id}', [ReportSampleController::class, 'download'])
+        ->name('documents.download');
+});
+
+Route::resource('reportsample', ReportSampleController::class);
 
 Route::resource('permissions', PermissionController::class);
 
