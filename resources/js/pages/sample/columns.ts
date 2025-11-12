@@ -10,6 +10,11 @@ export interface Sample {
     status_name: string;
     type: string;
     sent_at: string;
+    received_at: string;
+    analyzed_at: string;
+    sample_taken_at: string;
+    results_at: string;
+    company_name: string;
 }
 
 export const sampleColumns: ColumnDef<Sample>[] = [
@@ -45,18 +50,34 @@ export const sampleColumns: ColumnDef<Sample>[] = [
     },
 
     {
+        accessorKey: 'sent_at',
+        header: 'Fecha de Envío',
+        cell: (info) => info.getValue(),
+    },
+    {
+        accessorKey: 'received_at',
+        header: 'Fecha de Recepción',
+        cell: (info) => info.getValue(),
+    },
+
+    {
+        accessorKey: 'sample_taken_at',
+        header: 'Fecha de Toma de Muestra',
+        cell: (info) => info.getValue(),
+    },
+    {
+        accessorKey: 'analyzed_at',
+        header: 'Fecha de Análisis',
+        cell: (info) => info.getValue(),
+    },
+    {
         id: 'actions',
         header: 'Acciones',
         cell: ({ row }) =>
             h(ActionCell, {
-                resource: 'reportsample',
+                resource: 'sample',
                 id: row.original.id,
-                show: true,
-                uploadInforme: true,
-                uploadCadenaCustodia: true,
-                edit: false,
-                destroy: false,
-                pdf: false,
+                show: true,            
             }),
     },
 ];

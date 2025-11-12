@@ -9,66 +9,53 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import UploadDocumentDialog from '@/components/UploadDocumentDialog.vue'
-import { router } from '@inertiajs/vue3'
-import {
-    ClipboardList,
-    Eye,
-    FileDown,
-    FileUp,
-    MoreHorizontal,
-    Pencil,
-    Trash2,
-} from 'lucide-vue-next'
-import { ref } from 'vue'
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import UploadDocumentDialog from '@/components/UploadDocumentDialog.vue';
+import { router } from '@inertiajs/vue3';
+import { ClipboardList, Eye, FileDown, FileUp, MoreHorizontal, Pencil, Trash2 } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 const props = defineProps<{
-    resource: string
-    id: string | number
-    show?: boolean
-    edit?: boolean
-    destroy?: boolean
-    pdf?: boolean
-    uploadInforme?: boolean
-    uploadCadenaCustodia?: boolean
-}>()
+    resource: string;
+    id: string | number;
+    show?: boolean;
+    edit?: boolean;
+    destroy?: boolean;
+    pdf?: boolean;
+    uploadInforme?: boolean;
+    uploadCadenaCustodia?: boolean;
+}>();
 
-const showUploadInforme = ref(false)
-const showUploadCadena = ref(false)
-const uploadMessage = ref<string | null>(null)
+const showUploadInforme = ref(false);
+const showUploadCadena = ref(false);
+const uploadMessage = ref<string | null>(null);
 
-const goToEdit = () => router.visit(route(`${props.resource}.edit`, props.id))
-const goToView = () => router.visit(route(`${props.resource}.show`, props.id))
+const goToEdit = () => router.visit(route(`${props.resource}.edit`, props.id));
+const goToView = () => router.visit(route(`${props.resource}.show`, props.id));
 
 const destroyItem = () => {
     router.delete(route(`${props.resource}.destroy`, props.id), {
         preserveState: false,
         preserveScroll: true,
-    })
-}
+    });
+};
 
 const downloadPdf = () => {
-    const url = route('samples.pdf', props.id)
-    window.open(url, '_blank')
-}
+    const url = route('samples.pdf', props.id);
+    window.open(url, '_blank');
+};
 
 // 🔥 Nuevo manejo sin alert()
 const handleUploaded = (tipo: string) => {
-    uploadMessage.value = `✅ ${tipo} subido correctamente.`
+    uploadMessage.value = `✅ ${tipo} subido correctamente.`;
 
     // Limpia el mensaje automáticamente después de 3s
     setTimeout(() => {
-        uploadMessage.value = null
-    }, 3000)
-}
+        uploadMessage.value = null;
+    }, 3000);
+};
 </script>
 
 <template>
@@ -126,8 +113,7 @@ const handleUploaded = (tipo: string) => {
             <AlertDialogHeader>
                 <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
                 <AlertDialogDescription>
-                    Esta acción no se puede deshacer. Esto eliminará permanentemente el
-                    registro de nuestros servidores.
+                    Esta acción no se puede deshacer. Esto eliminará permanentemente el registro de nuestros servidores.
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -138,21 +124,33 @@ const handleUploaded = (tipo: string) => {
     </AlertDialog>
 
     <!-- Diálogo de Subida: Informe Muestra -->
-    <UploadDocumentDialog v-if="uploadInforme !== false" v-model="showUploadInforme" :sample-id="id"
+    <UploadDocumentDialog
+        v-if="uploadInforme !== false"
+        v-model="showUploadInforme"
+        :sample-id="id"
         title="Subir Informe de Muestra"
         description="Selecciona el archivo PDF correspondiente al informe de la muestra."
-        action="/documents/upload-informe" @uploaded="handleUploaded('Informe de Muestra')" />
+        action="/documents/upload-informe"
+        @uploaded="handleUploaded('Informe de Muestra')"
+    />
 
     <!-- Diálogo de Subida: Cadena de Custodia -->
-    <UploadDocumentDialog v-if="uploadCadenaCustodia !== false" v-model="showUploadCadena" :sample-id="id"
+    <UploadDocumentDialog
+        v-if="uploadCadenaCustodia !== false"
+        v-model="showUploadCadena"
+        :sample-id="id"
         title="Subir Cadena de Custodia"
         description="Selecciona el archivo PDF correspondiente a la cadena de custodia."
-        action="/documents/upload-cadena" @uploaded="handleUploaded('Cadena de Custodia')" />
+        action="/documents/upload-cadena"
+        @uploaded="handleUploaded('Cadena de Custodia')"
+    />
 
     <!-- Mensaje de confirmación dentro de la vista -->
     <transition name="fade">
-        <div v-if="uploadMessage"
-            class="fixed bottom-6 right-6 z-50 rounded-lg bg-green-600 text-white px-4 py-3 shadow-lg text-sm font-medium flex items-center gap-2">
+        <div
+            v-if="uploadMessage"
+            class="fixed right-6 bottom-6 z-50 flex items-center gap-2 rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white shadow-lg"
+        >
             <FileUp class="h-4 w-4 text-white" />
             {{ uploadMessage }}
         </div>

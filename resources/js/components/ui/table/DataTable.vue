@@ -12,11 +12,26 @@ import {
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from '@/components/ui/table'
 import { ref, watch } from 'vue'
 
-const props = defineProps<{
+// Función debounce para optimizar el filtrado
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number) {
+  let timeout: ReturnType<typeof setTimeout> | null = null
+  return function(this: any, ...args: Parameters<T>) {
+    if (timeout) clearTimeout(timeout)
+    timeout = setTimeout(() => func.apply(this, args), wait)
+  }
+}
+
+const props = withDefaults(defineProps<{
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   page?: number // página externa (0-based)
-}>()
+  searchPlaceholder?: string // placeholder personalizable
+  enableSearch?: boolean // habilitar/deshabilitar búsqueda (default: true)
+  searchableColumns?: string[] // columnas donde buscar (si no se define, busca en todas)
+}>(), {
+  enableSearch: true,
+  searchPlaceholder: 'Buscar...'
+})
 
 const emit = defineEmits<{
   (e: 'update:page', page: number): void
@@ -24,6 +39,8 @@ const emit = defineEmits<{
 
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
+const globalFilter = ref('')
+const searchInput = ref('') // Input visible para el usuario
 const pagination = ref<PaginationState>({
   pageIndex: props.page ?? 0,
   pageSize: 10, // ajusta si quieres otro valor
@@ -35,6 +52,34 @@ watch(() => props.page, (newPage) => {
     pagination.value.pageIndex = newPage
   }
 })
+
+// Debounced filter - actualiza el filtro después de 300ms de inactividad
+const debouncedSetFilter = debounce((value: string) => {
+  globalFilter.value = value
+}, 300)
+
+// Handler para el input
+const handleSearchInput = (event: Event) => {
+  const value = (event.target as HTMLInputElement).value
+  searchInput.value = value
+  debouncedSetFilter(value)
+}
+
+// Función de filtro personalizada para buscar en columnas específicas
+const globalFilterFn = (row: any, columnId: string, filterValue: string) => {
+  const searchableColumns = props.searchableColumns
+  
+  // Si hay columnas específicas definidas, solo buscar en esas
+  if (searchableColumns && searchableColumns.length > 0) {
+    return searchableColumns.some(colId => {
+      const value = row.getValue(colId)
+      return String(value).toLowerCase().includes(String(filterValue).toLowerCase())
+    })
+  }
+  
+  // Si no hay columnas específicas, buscar en todas
+  return String(row.getValue(columnId)).toLowerCase().includes(String(filterValue).toLowerCase())
+}
 
 const table = useVueTable({
   get data() {
@@ -53,6 +98,9 @@ const table = useVueTable({
     get pagination() {
       return pagination.value
     },
+    get globalFilter() {
+      return globalFilter.value
+    },
   },
   onSortingChange: updater => {
     sorting.value = typeof updater === 'function' ? updater(sorting.value) : updater
@@ -64,6 +112,10 @@ const table = useVueTable({
     pagination.value = typeof updater === 'function' ? updater(pagination.value) : updater
     emit('update:page', pagination.value.pageIndex)
   },
+  onGlobalFilterChange: updater => {
+    globalFilter.value = typeof updater === 'function' ? updater(globalFilter.value) : updater
+  },
+  globalFilterFn: globalFilterFn,
   getCoreRowModel: getCoreRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
   getSortedRowModel: getSortedRowModel(),
@@ -72,14 +124,15 @@ const table = useVueTable({
 </script>
 
 <template>
-  <div class="border rounded-md">
-    <div class="flex gap-2 p-4">
+  <div class="rounded-md border">
+    <!-- Búsqueda Global Universal con Debounce -->
+    <div v-if="props.enableSearch" class="flex gap-2 border-b bg-background p-4">
       <input
         type="text"
-        placeholder="Buscar por nombre"
-        :value="table.getColumn('name')?.getFilterValue() ?? ''"
-        @input="table.getColumn('name')?.setFilterValue(($event.target as HTMLInputElement).value)"
-        class="border px-2 py-1 rounded w-full"
+        :placeholder="props.searchPlaceholder"
+        :value="searchInput"
+        @input="handleSearchInput"
+        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       />
     </div>
 
@@ -104,21 +157,29 @@ const table = useVueTable({
         </TableRow>
 
         <TableRow v-if="table.getRowModel().rows.length === 0">
-          <TableCell :colspan="props.columns.length" class="text-center py-4">No hay resultados.</TableCell>
+          <TableCell :colspan="props.columns.length" class="py-4 text-center text-muted-foreground">No hay resultados.</TableCell>
         </TableRow>
       </TableBody>
     </Table>
 
-    <div class="flex justify-between items-center p-4">
-      <button @click="table.previousPage()" :disabled="!table.getCanPreviousPage()" class="px-2 py-1 border rounded disabled:opacity-50">
+    <div class="flex items-center justify-between border-t bg-background p-4">
+      <button 
+        @click="table.previousPage()" 
+        :disabled="!table.getCanPreviousPage()" 
+        class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+      >
         Anterior
       </button>
 
-      <div>
+      <div class="text-sm text-muted-foreground">
         Página {{ table.getState().pagination.pageIndex + 1 }} de {{ table.getPageCount() }}
       </div>
 
-      <button @click="table.nextPage()" :disabled="!table.getCanNextPage()" class="px-2 py-1 border rounded disabled:opacity-50">
+      <button 
+        @click="table.nextPage()" 
+        :disabled="!table.getCanNextPage()" 
+        class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+      >
         Siguiente
       </button>
     </div>

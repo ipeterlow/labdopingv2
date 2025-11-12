@@ -48,7 +48,29 @@ class ReportSampleController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $sample = Sample::join('companies', 'samples.company_id', '=', 'companies.id')
+            ->join('sample_status', 'samples.status', '=', 'sample_status.id')
+            ->select('samples.*', 'companies.name as company_name', 'sample_status.name as status_name')
+            ->where('samples.id', $id)
+            ->firstOrFail();
+
+        $documents = Document::where('sample_id', $sample->id)->get();
+
+        // Buscar documentos específicos
+        $informeDoc = Document::where('sample_id', $sample->id)
+            ->where('type_document', 'informe')
+            ->first();
+
+        $cadenaDoc = Document::where('sample_id', $sample->id)
+            ->where('type_document', 'cadena_custodia')
+            ->first();
+
+        return Inertia::render('reportsample/Show', [
+            'sample' => $sample,
+            'documents' => $documents,
+            'informeDocument' => $informeDoc,
+            'cadenaDocument' => $cadenaDoc,
+        ]);
     }
 
     /**
@@ -91,9 +113,6 @@ class ReportSampleController extends Controller
         return $this->handleUpload($request, 'cadena');
     }
 
-    /**
-     * 🧱 Método reutilizable para ambas subidas
-     */
     private function handleUpload(Request $request, string $type)
     {
         $request->validate([
@@ -104,7 +123,6 @@ class ReportSampleController extends Controller
         // Buscar la muestra asociada
         $sample = Sample::where('id', 'LIKE', $request->external_id)->first();
 
-
         if (! $sample) {
             return response()->json([
                 'status' => 'error',
@@ -112,32 +130,58 @@ class ReportSampleController extends Controller
             ], 404);
         }
 
-        // Obtener archivo y nombre original
+        // --- INICIO DE LA CORRECCIÓN ---
+
+        // 1. Obtener archivo, nombre y carpeta
         $file = $request->file('file');
         $filename = $file->getClientOriginalName();
-
-        // Carpeta en S3 según tipo
         $folder = $type === 'informe' ? 'informes' : 'cadenas';
 
-        // Guardar en S3 usando el disco configurado
+        // 2. Definir el tipo de documento (¡Corregí un typo: era 'candena'!)
+        $documentType = $type === 'informe' ? 'informe' : 'cadena_custodia';
+
+        // 3. Buscar si ya existe un documento de este tipo para esta muestra
+        $existingDocument = Document::where('sample_id', $sample->id)
+                                    ->where('type_document', $documentType)
+                                    ->first();
+
+        // 4. Sube el NUEVO archivo a S3 (siempre)
         $path = $file->storeAs("{$folder}", $filename, 's3');
 
-        // Crear registro de documento
-        $document = Document::create([
-            'document_archive' => $path,
-            'sample_id' => $sample->id,
-        ]);
+        // 5. Si existía un documento, borra el archivo ANTIGUO de S3
+        if ($existingDocument && $existingDocument->document_archive) {
+            // Usamos Storage::disk('s3') para asegurarnos
+            Storage::disk('s3')->delete($existingDocument->document_archive);
+        }
 
-        // Actualizar el estado de la muestra (opcional, igual que en tu código original)
-        $sample->update([
-            'document' => $document->id,
-            'status' => $type === 'informe' ? 2 : 4,
-            'results_at' => Carbon::now('America/Santiago'),
-        ]);
+       
+        $document = Document::updateOrCreate(
+            [
+                'sample_id' => $sample->id,
+                'type_document' => $documentType,
+            ],
+            [
+                'document_archive' => $path,
+            ]
+        );
+
+        // --- FIN DE LA CORRECCIÓN ---
+
+        // 7. Actualizar el estado de la muestra
+        // (Mejora: Solo actualiza el estado a "listo" si es un informe)
+        if ($type === 'informe') {
+            $sample->update([
+                'document' => $document->id,
+                'status' => 4,
+                'results_at' => Carbon::now('America/Santiago'),
+            ]);
+        }
+        // Nota: Si subes una 'cadena', la muestra no cambiará de estado
+        // pero el documento 'cadena_custodia' sí se habrá guardado/actualizado.
 
         return response()->json([
             'status' => 'success',
-            'message' => "Archivo '{$filename}' subido correctamente.",
+            'message' => "Archivo '{$filename}' subido y actualizado correctamente.",
             'path' => $path,
             'document_id' => $document->id,
         ]);
@@ -153,9 +197,14 @@ class ReportSampleController extends Controller
 
         $contents = Storage::disk('s3')->get($document->document_archive);
 
+        // Definir el nombre del archivo según el tipo de documento
+        $fileName = $document->type_document === 'informe' 
+            ? 'Informe-' . $sample->external_id . '.pdf'
+            : 'Cadena-Custodia-' . $sample->external_id . '.pdf';
+
         return response()->streamDownload(
             fn () => print ($contents),
-            'Informe-'.$sample->external_id.'.pdf'
+            $fileName
         );
     }
 }

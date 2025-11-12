@@ -25,9 +25,9 @@ defineProps<Props>();
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">
-            <Link class="block w-full" :href="route('users.create')" prefetch as="button">
+            <Link class="block w-full" :href="route('users.index')" prefetch as="button">
                 <UserRoundPlus class="mr-2 h-4 w-4" />
-                Crear Usuario
+                 Usuario
             </Link>
         </DropdownMenuItem>
         <DropdownMenuItem :as-child="true">

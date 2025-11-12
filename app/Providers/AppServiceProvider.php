@@ -42,5 +42,13 @@ class AppServiceProvider extends ServiceProvider
                     : [],
             ];
         });
+
+        // Comparte mensajes flash con Inertia
+        Inertia::share('flash', function () {
+            return [
+                'success' => session('success'),
+                'error' => session('error'),
+            ];
+        });
     }
 }

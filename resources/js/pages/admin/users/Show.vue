@@ -1,41 +1,69 @@
 <script setup lang="ts">
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 
 // Props que vienen del controlador
 const props = defineProps<{
     user: {
+        id: number;
         name: string;
         email: string;
+        roles: Array<{ id: number; name: string }>;
+        created_at: string;
+        updated_at: string;
     };
 }>();
-
-// Inicializamos el form con los datos del usuario
-const form = useForm({
-    name: props.user.name,
-    email: props.user.email,
-});
 </script>
 
 <template>
-    <Head title="Show User" />
+    <Head title="Ver Usuario" />
     <AppLayout>
         <div class="p-4">
-            <h1 class="mb-4 text-2xl font-semibold">User Details</h1>
+            <h1 class="mb-4 text-2xl font-semibold">Detalles del Usuario</h1>
 
             <div class="w-8/12 space-y-4">
-                <!-- NAME -->
-                <div class="space-y-2">
-                    <Label for="name">Nombre</Label>
-                    <Input id="name" type="text" v-model="form.name" readonly />
-                </div>
+                <div class="space-y-4 rounded-md border bg-card p-6">
+                    <!-- NAME -->
+                    <div class="space-y-2">
+                        <Label for="name">Nombre</Label>
+                        <Input id="name" type="text" :value="user.name" readonly />
+                    </div>
 
-                <!-- EMAIL -->
-                <div class="space-y-2">
-                    <Label for="email">Email</Label>
-                    <Input id="email" type="email" v-model="form.email" readonly />
+                    <!-- EMAIL -->
+                    <div class="space-y-2">
+                        <Label for="email">Email</Label>
+                        <Input id="email" type="email" :value="user.email" readonly />
+                    </div>
+
+                    <!-- ROLES -->
+                    <div class="space-y-2">
+                        <Label>Roles Asignados</Label>
+                        <div v-if="user.roles && user.roles.length > 0" class="flex flex-wrap gap-2">
+                            <Badge v-for="role in user.roles" :key="role.id" variant="default">
+                                {{ role.name }}
+                            </Badge>
+                        </div>
+                        <p v-else class="text-sm text-muted-foreground">Sin roles asignados</p>
+                    </div>
+
+                    <!-- FECHAS -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <Label>Fecha de Creación</Label>
+                            <p class="text-sm text-muted-foreground">
+                                {{ new Date(user.created_at).toLocaleString('es-ES') }}
+                            </p>
+                        </div>
+                        <div class="space-y-2">
+                            <Label>Última Actualización</Label>
+                            <p class="text-sm text-muted-foreground">
+                                {{ new Date(user.updated_at).toLocaleString('es-ES') }}
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

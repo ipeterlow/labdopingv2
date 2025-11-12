@@ -32,6 +32,7 @@ class Document extends Model
         'document_archive',
         'status',
         'sample_id',
+        'type_document',
     ];
 
     public function sample()

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
+use App\Models\Spatie\Permission\Models\Role;
 use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -37,36 +38,59 @@ class UserController extends Controller
 
     public function create()
     {
-        return Inertia::render('admin/users/Create');
+        $roles = Role::all();
+
+        return Inertia::render('admin/users/Create', [
+            'roles' => $roles,
+        ]);
     }
 
     public function store(StoreUserRequest $request)
     {
-        User::create([
+        $user = User::create([
             'name' => $request->string('name'),
             'email' => $request->string('email'),
             'password' => Hash::make($request->string('password')),
         ]);
 
-        return redirect()->route('users.index')
-            ->with('success', 'Usuario creado');
+        // Asignar roles al usuario
+        if ($request->has('roles') && is_array($request->roles)) {
+            $user->syncRoles($request->roles);
+        }
+
+        return to_route('users.index')
+            ->with('success', 'Usuario creado exitosamente');
     }
 
     public function show(User $user)
     {
-        $user = User::find($user->id);
+        $user->load('roles');
 
         return Inertia::render('admin/users/Show', [
-            'user' => $user,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'roles' => $user->roles,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+            ],
         ]);
     }
 
     public function edit(User $user)
     {
-        $user = User::find($user->id);
+        $user->load('roles');
+        $roles = Role::all();
 
         return Inertia::render('admin/users/Edit', [
-            'user' => $user,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'roles' => $user->roles->pluck('id')->toArray(),
+            ],
+            'roles' => $roles,
         ]);
     }
 
@@ -76,6 +100,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'.$user->id,
             'password' => 'nullable|string|min:6|confirmed',
+            'roles' => 'nullable|array',
+            'roles.*' => 'exists:roles,id',
         ]);
 
         if (empty($data['password'])) {
@@ -84,8 +110,15 @@ class UserController extends Controller
 
         $user->update($data);
 
+        // Actualizar roles del usuario
+        if (isset($data['roles'])) {
+            $user->syncRoles($data['roles']);
+        } else {
+            $user->syncRoles([]);
+        }
+
         // ✅ Redirige con flash en lugar de render
-        return redirect()->route('users.edit', $user->id)
+        return to_route('users.edit', $user->id)
             ->with('success', 'Los datos fueron actualizados correctamente');
     }
 

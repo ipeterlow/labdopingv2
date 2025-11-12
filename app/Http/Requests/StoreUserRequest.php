@@ -24,6 +24,8 @@ class StoreUserRequest extends FormRequest
                     ? Password::min(8)
                     : Password::min(8)->uncompromised(),
             ],
+            'roles' => ['nullable', 'array'],
+            'roles.*' => ['exists:roles,id'],
         ];
     }
 }

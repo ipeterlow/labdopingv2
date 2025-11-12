@@ -26,7 +26,13 @@ const data = ref<Sample[]>([...((page.props.sample as unknown as Sample[]) ?? []
                 </Link>
             </div>
 
-            <DataTable :columns="sampleColumns" :data="data" class="mt-4" />
+            <DataTable
+                :columns="sampleColumns"
+                :data="data"
+                class="mt-4"
+                search-placeholder="Buscar por ID externo, interno, empresa, estado o fecha de recepción..."
+                :searchable-columns="['external_id', 'internal_id', 'company_name', 'status_name', 'received_at']"
+            />
         </div>
     </AppLayout>
 </template>
