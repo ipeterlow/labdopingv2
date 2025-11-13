@@ -295,7 +295,7 @@
             <span class="data-value font-value">{{ e($samples) }}</span>
         </div>
         <div class="data-row" style="margin-top: 8px;">
-            <label class="data-label" style="vertical-align: top;">Listado de muestras:</label>
+            <label class="data-label" style="vertical-align: top;">Listado de muestras A y B:</label>
             <div class="data-value" style="display: inline-block; vertical-align: top;">
                 <div class="muestras-box">
                     @foreach ($samples_list as $samp)

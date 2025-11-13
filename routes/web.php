@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BookUrineSampleController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DopingSampleController;
 use App\Http\Controllers\PermissionController;
@@ -40,6 +41,8 @@ Route::prefix('documents')->group(function () {
 
 Route::resource('reportsample', ReportSampleController::class);
 Route::resource('sample', SampleController::class);
+
+Route::resource('bookurinesample', BookUrineSampleController::class);
 
 Route::resource('permissions', PermissionController::class);
 

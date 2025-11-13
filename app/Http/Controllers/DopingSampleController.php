@@ -368,6 +368,9 @@ class DopingSampleController extends Controller
 
         $total = collect($stats)->flatten()->sum();
 
+        // Agrupar por external_id para evitar duplicados (solo mostrar una vez cada código)
+        $uniqueSamples = $samples->unique('external_id')->values();
+
         // Localiza fechas
         Carbon::setLocale('es');
         $receivedAt = Carbon::parse($sample->received_at);
@@ -394,7 +397,7 @@ class DopingSampleController extends Controller
             'sueroA' => $stats['A']['suero'],
             'sueroB' => $stats['B']['suero'],
             'samples' => $total,
-            'samples_list' => $samples,
+            'samples_list' => $uniqueSamples,
         ];
 
         $pdf = Pdf::loadView('pdfs.recepcion_muestras', $data)

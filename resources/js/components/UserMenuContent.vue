@@ -27,7 +27,7 @@ defineProps<Props>();
         <DropdownMenuItem :as-child="true">
             <Link class="block w-full" :href="route('users.index')" prefetch as="button">
                 <UserRoundPlus class="mr-2 h-4 w-4" />
-                 Usuario
+                Usuario
             </Link>
         </DropdownMenuItem>
         <DropdownMenuItem :as-child="true">

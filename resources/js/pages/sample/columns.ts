@@ -77,7 +77,7 @@ export const sampleColumns: ColumnDef<Sample>[] = [
             h(ActionCell, {
                 resource: 'sample',
                 id: row.original.id,
-                show: true,            
+                show: true,
             }),
     },
 ];

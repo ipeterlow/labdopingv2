@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Sample;
 use App\Models\Document;
+use App\Models\Sample;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
-
 
 class SampleController extends Controller
 {
@@ -19,13 +17,13 @@ class SampleController extends Controller
 
         $currentTeamId = auth()->user()->current_team_id;
 
-        if($currentTeamId === null || $currentTeamId == '') {
-               $samples = Sample::join('companies', 'samples.company_id', '=', 'companies.id')
-            ->join('sample_status', 'samples.status', '=', 'sample_status.id')
-            ->select('samples.id', 'samples.external_id', 'samples.internal_id', 'samples.category', 'sample_status.name as status_name', 'samples.type', 'samples.sent_at', 'samples.received_at', 'samples.analyzed_at', 'samples.sample_taken_at', 'samples.results_at', 'companies.name as company_name')
-            ->orderBy('samples.id', 'desc')
-            ->get();
-        }else{
+        if ($currentTeamId === null || $currentTeamId == '') {
+            $samples = Sample::join('companies', 'samples.company_id', '=', 'companies.id')
+                ->join('sample_status', 'samples.status', '=', 'sample_status.id')
+                ->select('samples.id', 'samples.external_id', 'samples.internal_id', 'samples.category', 'sample_status.name as status_name', 'samples.type', 'samples.sent_at', 'samples.received_at', 'samples.analyzed_at', 'samples.sample_taken_at', 'samples.results_at', 'companies.name as company_name')
+                ->orderBy('samples.id', 'desc')
+                ->get();
+        } else {
             $samples = Sample::where('company_id', $currentTeamId)
                 ->join('companies', 'samples.company_id', '=', 'companies.id')
                 ->join('sample_status', 'samples.status', '=', 'sample_status.id')
@@ -33,7 +31,6 @@ class SampleController extends Controller
                 ->orderBy('samples.id', 'desc')
                 ->get();
         }
-     
 
         return Inertia::render('sample/Index', [
             'sample' => $samples,
@@ -63,8 +60,7 @@ class SampleController extends Controller
     public function show(string $id)
     {
 
-        
-         $sample = Sample::join('companies', 'samples.company_id', '=', 'companies.id')
+        $sample = Sample::join('companies', 'samples.company_id', '=', 'companies.id')
             ->join('sample_status', 'samples.status', '=', 'sample_status.id')
             ->select('samples.*', 'companies.name as company_name', 'sample_status.name as status_name')
             ->where('samples.id', $id)

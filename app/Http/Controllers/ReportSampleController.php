@@ -142,8 +142,8 @@ class ReportSampleController extends Controller
 
         // 3. Buscar si ya existe un documento de este tipo para esta muestra
         $existingDocument = Document::where('sample_id', $sample->id)
-                                    ->where('type_document', $documentType)
-                                    ->first();
+            ->where('type_document', $documentType)
+            ->first();
 
         // 4. Sube el NUEVO archivo a S3 (siempre)
         $path = $file->storeAs("{$folder}", $filename, 's3');
@@ -154,7 +154,6 @@ class ReportSampleController extends Controller
             Storage::disk('s3')->delete($existingDocument->document_archive);
         }
 
-       
         $document = Document::updateOrCreate(
             [
                 'sample_id' => $sample->id,
@@ -198,9 +197,9 @@ class ReportSampleController extends Controller
         $contents = Storage::disk('s3')->get($document->document_archive);
 
         // Definir el nombre del archivo según el tipo de documento
-        $fileName = $document->type_document === 'informe' 
-            ? 'Informe-' . $sample->external_id . '.pdf'
-            : 'Cadena-Custodia-' . $sample->external_id . '.pdf';
+        $fileName = $document->type_document === 'informe'
+            ? 'Informe-'.$sample->external_id.'.pdf'
+            : 'Cadena-Custodia-'.$sample->external_id.'.pdf';
 
         return response()->streamDownload(
             fn () => print ($contents),

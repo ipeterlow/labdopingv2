@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { buttonVariants } from '@/components/ui/button';
 import DataTable from '@/components/ui/table/DataTable.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { PageProps } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Sample, sampleColumns } from './columns';
 
