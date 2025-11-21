@@ -3,13 +3,22 @@ import DataTable from '@/components/ui/table/DataTable.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { PageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { UrineSample, urineSampleColumns } from './columns';
 import UrineSampleDialog from './UrineSampleDialog.vue';
 
 const page = usePage<PageProps>();
 const rawData = computed(() => (page.props.urineSamples as unknown as UrineSample[]) ?? []);
 const data = ref<UrineSample[]>([...rawData.value]);
+
+// Sincronizar data cuando rawData cambie
+watch(
+    rawData,
+    (newData) => {
+        data.value = [...newData];
+    },
+    { deep: true },
+);
 
 // Estado del dialog
 const dialogOpen = ref(false);

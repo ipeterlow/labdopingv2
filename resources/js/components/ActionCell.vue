@@ -129,7 +129,7 @@ const handleUploaded = (tipo: string) => {
         v-model="showUploadInforme"
         :sample-id="id"
         title="Subir Informe de Muestra"
-        description="Selecciona el archivo PDF correspondiente al informe de la muestra."
+        description="Selecciona un archivo PDF o toma una foto del informe de la muestra."
         action="/documents/upload-informe"
         @uploaded="handleUploaded('Informe de Muestra')"
     />
@@ -140,7 +140,7 @@ const handleUploaded = (tipo: string) => {
         v-model="showUploadCadena"
         :sample-id="id"
         title="Subir Cadena de Custodia"
-        description="Selecciona el archivo PDF correspondiente a la cadena de custodia."
+        description="Selecciona un archivo PDF o toma una foto de la cadena de custodia."
         action="/documents/upload-cadena"
         @uploaded="handleUploaded('Cadena de Custodia')"
     />

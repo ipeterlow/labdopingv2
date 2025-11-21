@@ -13,7 +13,10 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return redirect()->route('dashboard');
+    if (auth()->check()) {
+        return redirect()->route('dopingsample.index');
+    }
+    return redirect()->route('login');
 })->name('home');
 
 Route::get('dashboard', function () {

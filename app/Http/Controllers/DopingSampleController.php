@@ -73,7 +73,7 @@ class DopingSampleController extends Controller
             'samples' => ['required', 'array', 'min:1'],
             'samples.*.external' => ['required', 'string', 'max:255'],
             'samples.*.type' => ['required', Rule::in(['orina', 'pelo', 'saliva', 'suero'])],
-            'samples.*.category' => ['required', Rule::in(['A', 'B'])],
+            'samples.*.category' => ['required', Rule::in(['A', 'B', 'A-B'])],
         ]);
 
         // 2) Normalización de campos
@@ -112,18 +112,29 @@ class DopingSampleController extends Controller
 
         // 3) Crear una fila en "samples" por cada item ingresado
         foreach ($data['samples'] as $s) {
-            Sample::create(array_merge($commons, [
-                'external_id' => $s['external'],
-                'type' => $s['type'],
-                'category' => $s['category'],
-                // estos campos existen en el modelo pero no vienen del form:
-                // 'internal_id'   => null,
-                // 'analyzed_at'   => null,
-                // 'sample_taken_at' => null,
-                // 'results_at'    => null,
-                // 'document'      => null,
-                // 'reception_id'  => null,
-            ]));
+            // Si la categoría es "A-B", crear dos registros (uno para A y otro para B)
+            if ($s['category'] === 'A-B') {
+                // Crear muestra categoría A
+                Sample::create(array_merge($commons, [
+                    'external_id' => $s['external'],
+                    'type' => $s['type'],
+                    'category' => 'A',
+                ]));
+                
+                // Crear muestra categoría B
+                Sample::create(array_merge($commons, [
+                    'external_id' => $s['external'],
+                    'type' => $s['type'],
+                    'category' => 'B',
+                ]));
+            } else {
+                // Crear una sola muestra con la categoría especificada
+                Sample::create(array_merge($commons, [
+                    'external_id' => $s['external'],
+                    'type' => $s['type'],
+                    'category' => $s['category'],
+                ]));
+            }
         }
 
         // 4) Respuesta
@@ -131,8 +142,7 @@ class DopingSampleController extends Controller
             return response()->json(['status' => 'success']);
         }
 
-        return redirect()
-            ->route('dopingsample.create')
+        return to_route('dopingsample.index')
             ->with('success', 'Muestras creadas correctamente.');
     }
 

@@ -82,14 +82,15 @@ const uploadFile = async () => {
             <DialogHeader>
                 <DialogTitle>{{ title || 'Subir Documento' }}</DialogTitle>
                 <DialogDescription>
-                    {{ description || 'Selecciona un archivo PDF para subirlo.' }}
+                    {{ description || 'Selecciona un archivo o toma una foto para subirlo.' }}
                 </DialogDescription>
             </DialogHeader>
 
             <div class="space-y-4 py-2">
                 <input
                     type="file"
-                    accept=".pdf"
+                    accept="image/*,.pdf"
+                    capture="environment"
                     class="block w-full cursor-pointer rounded-lg border border-gray-300 text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-white hover:file:bg-primary/90"
                     @change="handleFileChange"
                 />

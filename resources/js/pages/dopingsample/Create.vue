@@ -3,7 +3,6 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 // shadcn-vue
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
@@ -11,8 +10,9 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { Check, ChevronsUpDown, Plus, SendHorizonal, XCircle } from 'lucide-vue-next';
+import { ChevronsUpDown, Plus, SendHorizonal, Trash2 } from 'lucide-vue-next';
 
 // Props desde Inertia (precargadas)
 type Company = { id: number; name: string };
@@ -22,7 +22,7 @@ const props = defineProps<{ companies: Company[] }>();
 type SampleItem = {
     external: string;
     type: 'orina' | 'pelo' | 'saliva' | 'suero' | '';
-    category: 'A' | 'B' | '';
+    category: 'A' | 'B' | 'A-B' | '';
 };
 
 const form = useForm({
@@ -37,17 +37,6 @@ const form = useForm({
 
     samples: [] as SampleItem[],
 });
-
-// Alert
-const showAlert = ref(false);
-const alertType = ref<'success' | 'error'>('success');
-const alertMessage = ref('');
-function flash(kind: 'success' | 'error', msg: string) {
-    alertType.value = kind;
-    alertMessage.value = msg;
-    showAlert.value = true;
-    setTimeout(() => (showAlert.value = false), 3000);
-}
 
 // --- Empresas: Combobox 100% shadcn ---
 const companiesOpen = ref(false);
@@ -92,15 +81,7 @@ const isOtherShipping = computed(() => form.shipping_type === 'otros');
 // Submit
 function submit() {
     form.post(route('dopingsample.store'), {
-        preserveScroll: true,
-        onSuccess: () => {
-            form.reset();
-            companyQuery.value = '';
-            flash('success', 'Las muestras fueron creadas correctamente.');
-        },
-        onError: () => {
-            flash('error', 'Revisa los campos con errores.');
-        },
+        preserveScroll: false,
     });
 }
 </script>
@@ -108,19 +89,6 @@ function submit() {
 <template>
     <Head title="Agregar Muestras" />
     <AppLayout>
-        <!-- Alert flotante -->
-        <div class="fixed top-4 right-4 z-50 w-96">
-            <transition name="fade">
-                <Alert v-if="showAlert" :variant="alertType === 'success' ? 'default' : 'destructive'" class="shadow-md">
-                    <div class="flex items-center gap-2">
-                        <component :is="alertType === 'success' ? Check : XCircle" class="h-5 w-5" />
-                        <AlertTitle>{{ alertType === 'success' ? 'Éxito' : 'Error' }}</AlertTitle>
-                    </div>
-                    <AlertDescription>{{ alertMessage }}</AlertDescription>
-                </Alert>
-            </transition>
-        </div>
-
         <div class="w-full max-w-6xl space-y-6 p-6">
             <h1 class="text-2xl font-semibold">Agregar Muestras</h1>
 
@@ -256,55 +224,70 @@ function submit() {
                         <div class="flex items-center gap-2">
                             <Input type="number" min="1" v-model.number="amountToAdd" placeholder="Cantidad…" class="w-40" />
                             <Button type="button" class="bg-emerald-600 text-white hover:bg-emerald-700" @click="addSamples">
-                                <Plus class="mr-2 h-4 w-4" /> Agregar Muestras
+                                <Plus class="mr-2 h-4 w-4" /> Agregar
                             </Button>
                         </div>
                     </div>
 
-                    <div class="space-y-4">
-                        <div v-for="(s, idx) in form.samples" :key="idx" class="rounded-md border p-4">
-                            <div class="mb-3 text-sm font-medium text-muted-foreground">Muestra #{{ idx + 1 }}</div>
-                            <div class="grid gap-4 sm:grid-cols-3">
-                                <div class="space-y-2">
-                                    <Label :for="`ext-${idx}`">Código de Muestra Externo "FCC"</Label>
-                                    <Input :id="`ext-${idx}`" type="text" v-model="s.external" />
-                                </div>
-                                <div class="space-y-2">
-                                    <Label :for="`type-${idx}`">Tipo de Muestra</Label>
-                                    <Select v-model="s.type">
-                                        <SelectTrigger :id="`type-${idx}`">
-                                            <SelectValue placeholder="Seleccione…" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                <SelectItem value="orina">Orina</SelectItem>
-                                                <SelectItem value="pelo">Pelo</SelectItem>
-                                                <SelectItem value="saliva">Saliva</SelectItem>
-                                                <SelectItem value="suero">Suero</SelectItem>
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div class="space-y-2">
-                                    <Label :for="`cat-${idx}`">Categoría de Muestra</Label>
-                                    <Select v-model="s.category">
-                                        <SelectTrigger :id="`cat-${idx}`">
-                                            <SelectValue placeholder="Seleccione…" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                <SelectItem value="A">A</SelectItem>
-                                                <SelectItem value="B">B</SelectItem>
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            <div class="mt-3 flex justify-end">
-                                <Button type="button" variant="destructive" @click="removeSample(idx)">Eliminar</Button>
-                            </div>
-                        </div>
+                    <div v-if="form.samples.length > 0" class="rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead class="w-12">#</TableHead>
+                                    <TableHead>Código Externo "FCC"</TableHead>
+                                    <TableHead>Tipo de Muestra</TableHead>
+                                    <TableHead>Categoría</TableHead>
+                                    <TableHead class="w-20 text-center">Acción</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow v-for="(s, idx) in form.samples" :key="idx">
+                                    <TableCell class="font-medium text-muted-foreground">{{ idx + 1 }}</TableCell>
+                                    <TableCell>
+                                        <Input type="text" v-model="s.external" placeholder="Ingrese código…" class="w-full" />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Select v-model="s.type">
+                                            <SelectTrigger class="w-full">
+                                                <SelectValue placeholder="Seleccione…" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectGroup>
+                                                    <SelectItem value="orina">Orina</SelectItem>
+                                                    <SelectItem value="pelo">Pelo</SelectItem>
+                                                    <SelectItem value="saliva">Saliva</SelectItem>
+                                                    <SelectItem value="suero">Suero</SelectItem>
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Select v-model="s.category">
+                                            <SelectTrigger class="w-full">
+                                                <SelectValue placeholder="Seleccione…" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectGroup>
+                                                    <SelectItem value="A">A</SelectItem>
+                                                    <SelectItem value="B">B</SelectItem>
+                                                    <SelectItem value="A-B">A y B</SelectItem>
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                    </TableCell>
+                                    <TableCell class="text-center">
+                                        <Button type="button" variant="ghost" size="icon" @click="removeSample(idx)">
+                                            <Trash2 class="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
                     </div>
+
+                    <p v-else class="py-8 text-center text-sm text-muted-foreground">
+                        No hay muestras agregadas. Usa el botón "Agregar" para añadir muestras.
+                    </p>
 
                     <p v-if="form.errors.samples" class="text-sm text-red-600">
                         {{ form.errors.samples }}
@@ -322,15 +305,3 @@ function submit() {
         </div>
     </AppLayout>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.2s;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-}
-</style>

@@ -11,10 +11,10 @@ const data = ref<Sample[]>([...((page.props.sample as unknown as Sample[]) ?? []
 </script>
 
 <template>
-    <Head title="Muestras" />
+    <Head title="Reportes de Muestras" />
     <AppLayout>
         <div class="p-4">
-            <h1 class="mb-4 text-2xl font-semibold">Muestras</h1>
+            <h1 class="mb-4 text-2xl font-semibold">Reportes de Muestras</h1>
 
             <DataTable :columns="sampleColumns" :data="data" class="mt-4" />
         </div>

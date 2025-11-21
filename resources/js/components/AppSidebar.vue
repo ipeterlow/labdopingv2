@@ -9,16 +9,7 @@ import { Beaker, Book, BookUser, FilePenLine, LayoutGrid, TestTube } from 'lucid
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Empresas',
-        href: '/company',
-        icon: BookUser,
-    },
+
     {
         title: 'Recepcion Muestras',
         href: '/dopingsample',
@@ -30,7 +21,7 @@ const mainNavItems: NavItem[] = [
         icon: FilePenLine,
     },
     {
-        title: 'Muestras',
+        title: 'Reporte Muestras',
         href: '/sample',
         icon: Beaker,
     },
@@ -48,6 +39,11 @@ const mainNavItems: NavItem[] = [
         title: 'Libro Ingre. Saliva',
         href: '/booksample/saliva',
         icon: Book,
+    },
+      {
+        title: 'Empresas',
+        href: '/company',
+        icon: BookUser,
     },
 ];
 

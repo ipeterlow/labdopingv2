@@ -116,7 +116,7 @@ class ReportSampleController extends Controller
     private function handleUpload(Request $request, string $type)
     {
         $request->validate([
-            'file' => 'required|file|mimes:pdf|max:12288', // máx. 12 MB
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:12288', // máx. 12 MB - Acepta PDFs e imágenes
             'external_id' => 'required',
         ]);
 

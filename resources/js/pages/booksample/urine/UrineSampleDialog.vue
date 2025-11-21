@@ -23,6 +23,10 @@ const emit = defineEmits<{
 
 const isReadOnly = computed(() => props.mode === 'view');
 
+// Computed properties para los campos de solo lectura
+const externalId = computed(() => props.sample?.external_id || '');
+const companyName = computed(() => props.sample?.company_name || '');
+
 // Opciones de drogas
 const drugOptions = [
     { value: 'THC', label: 'THC' },
@@ -73,7 +77,11 @@ const isConfirmacionChecked = (drug: string) => form.confirmacion.includes(drug)
 watch(
     () => [props.open, props.sample],
     ([isOpen, sample]) => {
-        if (isOpen && sample) {
+        if (isOpen && sample && typeof sample === 'object') {
+            console.log('=== FULL SAMPLE DATA ===', sample); // Debug completo
+            console.log('Screening raw:', sample.screening, 'Type:', typeof sample.screening); // Debug
+            console.log('Confirmacion raw:', sample.confirmacion, 'Type:', typeof sample.confirmacion); // Debug
+
             form.internal_id = sample.internal_id || '';
             form.ph = sample.ph || '';
             form.densidad = sample.densidad || '';
@@ -81,8 +89,27 @@ watch(
             form.largo = sample.largo || '';
 
             // Parsear screening y confirmacion de string a array
-            form.screening = sample.screening ? sample.screening.split(',').map((s) => s.trim()) : [];
-            form.confirmacion = sample.confirmacion ? sample.confirmacion.split(',').map((s) => s.trim()) : [];
+            // Filtrar strings vacíos después del split
+            if (sample.screening && typeof sample.screening === 'string' && sample.screening.trim().length > 0) {
+                form.screening = sample.screening
+                    .split(',')
+                    .map((s: string) => s.trim())
+                    .filter((s: string) => s.length > 0);
+            } else {
+                form.screening = [];
+            }
+
+            if (sample.confirmacion && typeof sample.confirmacion === 'string' && sample.confirmacion.trim().length > 0) {
+                form.confirmacion = sample.confirmacion
+                    .split(',')
+                    .map((s: string) => s.trim())
+                    .filter((s: string) => s.length > 0);
+            } else {
+                form.confirmacion = [];
+            }
+
+            console.log('Screening parsed:', form.screening); // Debug
+            console.log('Confirmacion parsed:', form.confirmacion); // Debug
 
             form.color = sample.color || '';
             form.observaciones = sample.observaciones || '';
@@ -169,7 +196,7 @@ const dialogTitle = computed(() => {
                         <div class="grid gap-4 md:grid-cols-3">
                             <div class="space-y-2">
                                 <Label>Nº Externo</Label>
-                                <Input :value="sample?.external_id" disabled />
+                                <Input :model-value="externalId" disabled class="bg-muted" />
                             </div>
                             <div class="space-y-2">
                                 <Label for="internal_id">Nº Interno</Label>
@@ -182,7 +209,7 @@ const dialogTitle = computed(() => {
                             </div>
                             <div class="space-y-2">
                                 <Label>Empresa</Label>
-                                <Input :value="sample?.company_name" disabled />
+                                <Input :model-value="companyName" disabled class="bg-muted" />
                             </div>
                         </div>
                     </div>
