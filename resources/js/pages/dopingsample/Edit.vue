@@ -12,8 +12,9 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { Check, ChevronsUpDown, SendHorizonal, XCircle } from 'lucide-vue-next';
+import { Check, ChevronsUpDown, SendHorizonal, Trash2, XCircle } from 'lucide-vue-next';
 
 // --- Props de Edición ---
 type Company = { id: number; name: string };
@@ -240,50 +241,62 @@ function submit() {
                 <div class="space-y-5 rounded-md border bg-card p-6">
                     <h2 class="text-lg font-medium">Listado de muestras</h2>
 
-                    <div class="space-y-4">
-                        <div v-for="(s, idx) in form.samples" :key="s.id" class="rounded-md border p-4">
-                            <div class="mb-3 text-sm font-medium text-muted-foreground">Muestra #{{ idx + 1 }}</div>
-                            <div class="grid gap-4 sm:grid-cols-3">
-                                <div class="space-y-2">
-                                    <Label :for="`ext-${idx}`">Código de Muestra Externo "FCC"</Label>
-                                    <Input :id="`ext-${idx}`" type="text" v-model="s.external" />
-                                </div>
-                                <div class="space-y-2">
-                                    <Label :for="`type-${idx}`">Tipo de Muestra</Label>
-                                    <Select v-model="s.type">
-                                        <SelectTrigger :id="`type-${idx}`">
-                                            <SelectValue placeholder="Seleccione…" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                <SelectItem value="orina">Orina</SelectItem>
-                                                <SelectItem value="pelo">Pelo</SelectItem>
-                                                <SelectItem value="saliva">Saliva</SelectItem>
-                                                <SelectItem value="suero">Suero</SelectItem>
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div class="space-y-2">
-                                    <Label :for="`cat-${idx}`">Categoría de Muestra</Label>
-                                    <Select v-model="s.category">
-                                        <SelectTrigger :id="`cat-${idx}`">
-                                            <SelectValue placeholder="Seleccione…" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                <SelectItem value="A">A</SelectItem>
-                                                <SelectItem value="B">B</SelectItem>
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            <div class="mt-3 flex justify-end">
-                                <Button type="button" variant="destructive" @click="removeSample(idx)">Eliminar</Button>
-                            </div>
-                        </div>
+                    <div v-if="form.samples.length > 0" class="rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead class="w-12">#</TableHead>
+                                    <TableHead>Código Externo "FCC"</TableHead>
+                                    <TableHead>Tipo de Muestra</TableHead>
+                                    <TableHead>Categoría</TableHead>
+                                    <TableHead class="w-20 text-center">Acción</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow v-for="(s, idx) in form.samples" :key="s.id">
+                                    <TableCell class="font-medium text-muted-foreground">{{ idx + 1 }}</TableCell>
+                                    <TableCell>
+                                        <Input type="text" v-model="s.external" placeholder="Ingrese código…" class="w-full" />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Select v-model="s.type">
+                                            <SelectTrigger class="w-full">
+                                                <SelectValue placeholder="Seleccione…" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectGroup>
+                                                    <SelectItem value="orina">Orina</SelectItem>
+                                                    <SelectItem value="pelo">Pelo</SelectItem>
+                                                    <SelectItem value="saliva">Saliva</SelectItem>
+                                                    <SelectItem value="suero">Suero</SelectItem>
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Select v-model="s.category">
+                                            <SelectTrigger class="w-full">
+                                                <SelectValue placeholder="Seleccione…" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectGroup>
+                                                    <SelectItem value="A">A</SelectItem>
+                                                    <SelectItem value="B">B</SelectItem>
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                    </TableCell>
+                                    <TableCell class="text-center">
+                                        <Button type="button" variant="ghost" size="icon" @click="removeSample(idx)">
+                                            <Trash2 class="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
                     </div>
+
+                    <p v-else class="py-8 text-center text-sm text-muted-foreground">No hay muestras en este grupo.</p>
 
                     <p v-if="form.errors.samples" class="text-sm text-red-600">
                         {{ form.errors.samples }}
