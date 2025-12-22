@@ -31,7 +31,7 @@ watch(
 </script>
 
 <template>
-    <Head title="Muestras Doping" />
+    <Head title="Recepcion de Muestras" />
     <AppLayout>
         <!-- Alert flotante para mensajes de éxito -->
         <div class="fixed top-4 right-4 z-50 w-96">
@@ -47,14 +47,14 @@ watch(
         </div>
 
         <div class="p-4">
-            <h1 class="mb-4 text-2xl font-semibold">Muestras Doping</h1>
+            <h1 class="mb-4 text-2xl font-semibold">Recepcion de Muestras</h1>
 
             <div class="flex justify-end">
                 <Link
                     :href="route ? route('dopingsample.create') : '/dopingsample/create'"
                     :class="buttonVariants({ variant: 'default', size: 'default' })"
                 >
-                    Crear Muestra Doping
+                    Agregar Muestra
                 </Link>
             </div>
 

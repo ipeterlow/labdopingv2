@@ -1,8 +1,8 @@
 import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
-import UrineSampleActions from './UrineSampleActions.vue';
+import SalivaSampleActions from './SalivaSampleActions.vue';
 
-export interface UrineSample {
+export interface SalivaSample {
     id_characteristic_samples: number;
     external_id: string;
     internal_id: string;
@@ -14,10 +14,8 @@ export interface UrineSample {
     ph?: string;
     densidad?: string;
     volumen?: string;
-    largo?: string;
     screening?: string;
     confirmacion?: string;
-    color?: string;
     observaciones?: string;
     cantidad_droga?: number;
     encargado_ingreso?: string;
@@ -25,7 +23,7 @@ export interface UrineSample {
     sample_id: number;
 }
 
-export const urineSampleColumns: ColumnDef<UrineSample>[] = [
+export const salivaSampleColumns: ColumnDef<SalivaSample>[] = [
     {
         accessorKey: 'external_id',
         header: 'Nº Externo',
@@ -70,7 +68,7 @@ export const urineSampleColumns: ColumnDef<UrineSample>[] = [
         id: 'actions',
         header: 'Acciones',
         cell: ({ row }) =>
-            h(UrineSampleActions, {
+            h(SalivaSampleActions, {
                 sample: row.original,
             }),
     },

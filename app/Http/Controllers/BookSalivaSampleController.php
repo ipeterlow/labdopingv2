@@ -7,17 +7,17 @@ use App\Models\Sample;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class BookUrineSampleController extends Controller
+class BookSalivaSampleController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $urineSamples = CharacteristicSample::query()
+        $salivaSamples = CharacteristicSample::query()
             ->join('samples', 'characteristic_samples.sample_id', '=', 'samples.id')
             ->join('companies', 'samples.company_id', '=', 'companies.id')
-            ->where('samples.type', '=', 'orina')
+            ->where('samples.type', '=', 'saliva')
             ->select([
                 'characteristic_samples.id_characteristic_samples',
                 'samples.external_id',
@@ -32,8 +32,8 @@ class BookUrineSampleController extends Controller
             ->orderBy('characteristic_samples.id_characteristic_samples', 'desc')
             ->get();
 
-        return Inertia::render('booksample/urine/Index', [
-            'urineSamples' => $urineSamples,
+        return Inertia::render('booksample/saliva/Index', [
+            'salivaSamples' => $salivaSamples,
         ]);
     }
 
@@ -42,18 +42,15 @@ class BookUrineSampleController extends Controller
      */
     public function create()
     {
-        //
+        abort(404);
     }
 
     /**
      * Store a newly created resource in storage.
-     * 
-     * Nota: Este método no se utiliza porque el registro en characteristic_samples
-     * se crea automáticamente al crear la muestra. Solo se actualiza mediante update().
      */
     public function store(Request $request)
     {
-        abort(404, 'Método no disponible. Use update() para actualizar características.');
+        abort(404);
     }
 
     /**
@@ -61,7 +58,7 @@ class BookUrineSampleController extends Controller
      */
     public function show(string $id)
     {
-        //
+        abort(404);
     }
 
     /**
@@ -69,7 +66,7 @@ class BookUrineSampleController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        abort(404);
     }
 
     /**
@@ -82,7 +79,6 @@ class BookUrineSampleController extends Controller
             'ph' => ['nullable', 'string', 'max:50'],
             'densidad' => ['nullable', 'string', 'max:50'],
             'volumen' => ['nullable', 'string', 'max:50'],
-            'largo' => ['nullable', 'string', 'max:50'],
             'screening' => ['nullable', 'string', 'max:255'],
             'confirmacion' => ['nullable', 'string', 'max:255'],
             'observaciones' => ['nullable', 'string', 'max:2000'],
@@ -90,10 +86,6 @@ class BookUrineSampleController extends Controller
             'encargado_ingreso' => ['nullable', 'string', 'max:255'],
             'fecha_ingreso' => ['nullable', 'date'],
         ]);
-
-        \Log::info('📥 Datos validados recibidos:', $validated);
-        \Log::info('📥 Screening: ' . ($validated['screening'] ?? 'null'));
-        \Log::info('📥 Confirmacion: ' . ($validated['confirmacion'] ?? 'null'));
 
         $characteristic = CharacteristicSample::findOrFail($id);
 
@@ -117,8 +109,8 @@ class BookUrineSampleController extends Controller
         // Actualizar características
         $characteristic->update($validated);
 
-        return redirect()->route('bookurinesample.index')
-            ->with('success', 'Características de orina actualizadas correctamente.');
+        return redirect()->route('booksalivasample.index')
+            ->with('success', 'Características de saliva actualizadas correctamente.');
     }
 
     /**
@@ -126,7 +118,7 @@ class BookUrineSampleController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        abort(404);
     }
 
     /**

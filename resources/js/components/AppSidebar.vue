@@ -5,11 +5,10 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { Beaker, Book, BookUser, FilePenLine, LayoutGrid, TestTube } from 'lucide-vue-next';
+import { Beaker, Book, BookUser, FilePenLine, TestTube } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
-
     {
         title: 'Recepcion Muestras',
         href: '/dopingsample',
@@ -26,21 +25,25 @@ const mainNavItems: NavItem[] = [
         icon: Beaker,
     },
     {
-        title: 'Libro Ingre. Orina',
-        href: '/bookurinesample',
+        title: 'Libros de Ingreso',
         icon: Book,
+        isActive: false,
+        items: [
+            {
+                title: 'Libro Orina',
+                href: '/bookurinesample',
+            },
+            {
+                title: 'Libro Pelo',
+                href: '/bookhairsample',
+            },
+            {
+                title: 'Libro Saliva',
+                href: '/booksalivasample',
+            },
+        ],
     },
     {
-        title: 'Libro Ingre. Pelo',
-        href: '/booksample/hair',
-        icon: Book,
-    },
-    {
-        title: 'Libro Ingre. Saliva',
-        href: '/booksample/saliva',
-        icon: Book,
-    },
-      {
         title: 'Empresas',
         href: '/company',
         icon: BookUser,

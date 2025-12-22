@@ -1,8 +1,8 @@
 import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
-import UrineSampleActions from './UrineSampleActions.vue';
+import HairSampleActions from './HairSampleActions.vue';
 
-export interface UrineSample {
+export interface HairSample {
     id_characteristic_samples: number;
     external_id: string;
     internal_id: string;
@@ -11,13 +11,10 @@ export interface UrineSample {
     received_at: string;
     analyzed_at: string;
     company_name: string;
-    ph?: string;
-    densidad?: string;
-    volumen?: string;
     largo?: string;
+    color?: string;
     screening?: string;
     confirmacion?: string;
-    color?: string;
     observaciones?: string;
     cantidad_droga?: number;
     encargado_ingreso?: string;
@@ -25,7 +22,7 @@ export interface UrineSample {
     sample_id: number;
 }
 
-export const urineSampleColumns: ColumnDef<UrineSample>[] = [
+export const hairSampleColumns: ColumnDef<HairSample>[] = [
     {
         accessorKey: 'external_id',
         header: 'Nº Externo',
@@ -52,25 +49,20 @@ export const urineSampleColumns: ColumnDef<UrineSample>[] = [
         cell: (info) => info.getValue() || '—',
     },
     {
-        accessorKey: 'ph',
-        header: 'pH',
+        accessorKey: 'largo',
+        header: 'Largo',
         cell: (info) => info.getValue() || '—',
     },
     {
-        accessorKey: 'densidad',
-        header: 'Densidad',
-        cell: (info) => info.getValue() || '—',
-    },
-    {
-        accessorKey: 'volumen',
-        header: 'Volumen',
+        accessorKey: 'color',
+        header: 'Color',
         cell: (info) => info.getValue() || '—',
     },
     {
         id: 'actions',
         header: 'Acciones',
         cell: ({ row }) =>
-            h(UrineSampleActions, {
+            h(HairSampleActions, {
                 sample: row.original,
             }),
     },

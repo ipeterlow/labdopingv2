@@ -20,17 +20,76 @@ class SampleController extends Controller
         if ($currentTeamId === null || $currentTeamId == '') {
             $samples = Sample::join('companies', 'samples.company_id', '=', 'companies.id')
                 ->join('sample_status', 'samples.status', '=', 'sample_status.id')
-                ->select('samples.id', 'samples.external_id', 'samples.internal_id', 'samples.category', 'sample_status.name as status_name', 'samples.type', 'samples.sent_at', 'samples.received_at', 'samples.analyzed_at', 'samples.sample_taken_at', 'samples.results_at', 'companies.name as company_name')
+                ->leftJoin('documents', function ($join) {
+                    $join->on('samples.id', '=', 'documents.sample_id')
+                        ->where('documents.type_document', '=', 'informe');
+                })
+                ->select(
+                    'samples.id',
+                    'samples.external_id',
+                    'samples.internal_id',
+                    'samples.category',
+                    'sample_status.name as status_name',
+                    'samples.type',
+                    'samples.sent_at',
+                    'samples.received_at',
+                    'samples.analyzed_at',
+                    'samples.sample_taken_at',
+                    'samples.results_at',
+                    'companies.name as company_name',
+                    'documents.created_at as informe_created_at'
+                )
                 ->orderBy('samples.id', 'desc')
                 ->get();
         } else {
-            $samples = Sample::where('company_id', $currentTeamId)
+            $samples = Sample::where('samples.company_id', $currentTeamId)
                 ->join('companies', 'samples.company_id', '=', 'companies.id')
                 ->join('sample_status', 'samples.status', '=', 'sample_status.id')
-                ->select('samples.id', 'samples.external_id', 'samples.internal_id', 'samples.category', 'sample_status.name as status_name', 'samples.type', 'samples.sent_at', 'samples.received_at', 'samples.analyzed_at', 'samples.sample_taken_at', 'samples.results_at', 'companies.name as company_name')
+                ->leftJoin('documents', function ($join) {
+                    $join->on('samples.id', '=', 'documents.sample_id')
+                        ->where('documents.type_document', '=', 'informe');
+                })
+                ->select(
+                    'samples.id',
+                    'samples.external_id',
+                    'samples.internal_id',
+                    'samples.category',
+                    'sample_status.name as status_name',
+                    'samples.type',
+                    'samples.sent_at',
+                    'samples.received_at',
+                    'samples.analyzed_at',
+                    'samples.sample_taken_at',
+                    'samples.results_at',
+                    'companies.name as company_name',
+                    'documents.created_at as informe_created_at'
+                )
                 ->orderBy('samples.id', 'desc')
                 ->get();
         }
+
+        // Calcular tiempos para cada muestra
+        $samples = $samples->map(function ($sample) {
+            // Tiempo de recepción (días entre sent_at y received_at)
+            if ($sample->sent_at && $sample->received_at) {
+                $sentDate = \Carbon\Carbon::parse($sample->sent_at);
+                $receivedDate = \Carbon\Carbon::parse($sample->received_at);
+                $sample->tiempo_recepcion = (int) $sentDate->diffInDays($receivedDate);
+            } else {
+                $sample->tiempo_recepcion = null;
+            }
+
+            // Tiempo de respuesta (días entre received_at y informe created_at)
+            if ($sample->received_at && $sample->informe_created_at) {
+                $receivedDate = \Carbon\Carbon::parse($sample->received_at);
+                $informeDate = \Carbon\Carbon::parse($sample->informe_created_at);
+                $sample->tiempo_respuesta = (int) $receivedDate->diffInDays($informeDate);
+            } else {
+                $sample->tiempo_respuesta = null;
+            }
+
+            return $sample;
+        });
 
         return Inertia::render('sample/Index', [
             'sample' => $samples,

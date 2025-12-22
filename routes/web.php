@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\BookHairSampleController;
+use App\Http\Controllers\BookSalivaSampleController;
 use App\Http\Controllers\BookUrineSampleController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DopingSampleController;
@@ -16,6 +18,7 @@ Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('dopingsample.index');
     }
+
     return redirect()->route('login');
 })->name('home');
 
@@ -32,6 +35,7 @@ Route::resource('roles', RoleController::class);
 
 Route::resource('dopingsample', DopingSampleController::class);
 Route::get('/dopingsample/{sample}/pdf', [DopingSampleController::class, 'download'])->name('samples.pdf');
+Route::put('/dopingsample/{id}/status', [DopingSampleController::class, 'updateStatus'])->name('dopingsample.updateStatus');
 
 Route::prefix('documents')->group(function () {
     Route::post('/upload-informe', [ReportSampleController::class, 'uploadInforme'])
@@ -46,6 +50,13 @@ Route::resource('reportsample', ReportSampleController::class);
 Route::resource('sample', SampleController::class);
 
 Route::resource('bookurinesample', BookUrineSampleController::class);
+Route::put('/bookurinesample/{id}/status', [BookUrineSampleController::class, 'updateStatus'])->name('bookurinesample.updateStatus');
+
+Route::resource('booksalivasample', BookSalivaSampleController::class);
+Route::put('/booksalivasample/{id}/status', [BookSalivaSampleController::class, 'updateStatus'])->name('booksalivasample.updateStatus');
+
+Route::resource('bookhairsample', BookHairSampleController::class);
+Route::put('/bookhairsample/{id}/status', [BookHairSampleController::class, 'updateStatus'])->name('bookhairsample.updateStatus');
 
 Route::resource('permissions', PermissionController::class);
 

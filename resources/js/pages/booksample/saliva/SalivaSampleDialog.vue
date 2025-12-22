@@ -11,11 +11,11 @@ import type { DateValue } from '@internationalized/date';
 import { getLocalTimeZone, parseDate } from '@internationalized/date';
 import { CalendarIcon } from 'lucide-vue-next';
 import { computed, reactive, ref, watch } from 'vue';
-import type { UrineSample } from './columns';
+import type { SalivaSample } from './columns';
 
 const props = defineProps<{
     open: boolean;
-    sample: UrineSample | null;
+    sample: SalivaSample | null;
     mode: 'view' | 'edit';
 }>();
 
@@ -65,7 +65,6 @@ const form = useForm({
     ph: '',
     densidad: '',
     volumen: '',
-    largo: '',
     screening: [] as string[],
     confirmacion: [] as string[],
     observaciones: '',
@@ -95,7 +94,6 @@ watch(
             form.ph = sample.ph || '';
             form.densidad = sample.densidad || '';
             form.volumen = sample.volumen || '';
-            form.largo = sample.largo || '';
             form.observaciones = sample.observaciones || '';
             form.cantidad_droga = sample.cantidad_droga || null;
             form.encargado_ingreso = sample.encargado_ingreso || '';
@@ -201,7 +199,6 @@ const handleSubmit = () => {
         ph: form.ph,
         densidad: form.densidad,
         volumen: form.volumen,
-        largo: form.largo,
         screening: screeningString,
         confirmacion: confirmacionString,
         observaciones: form.observaciones,
@@ -211,7 +208,7 @@ const handleSubmit = () => {
     };
 
     // El registro en characteristic_samples ya existe, solo actualizar
-    const endpoint = route('bookurinesample.update', props.sample.id_characteristic_samples);
+    const endpoint = route('booksalivasample.update', props.sample.id_characteristic_samples);
     form.transform(() => dataToSend).put(endpoint, {
         preserveScroll: true,
         onSuccess: () => {
@@ -225,8 +222,8 @@ const handleSubmit = () => {
 };
 
 const dialogTitle = computed(() => {
-    if (props.mode === 'view') return 'Ver Características de Orina';
-    return 'Editar Características de Orina';
+    if (props.mode === 'view') return 'Ver Características de Saliva';
+    return 'Editar Características de Saliva';
 });
 </script>
 
@@ -266,7 +263,7 @@ const dialogTitle = computed(() => {
                 <!-- Características Físicas -->
                 <div class="space-y-4">
                     <h3 class="font-semibold">Características Físicas</h3>
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <div class="space-y-2">
                             <Label for="ph">pH</Label>
                             <Input id="ph" v-model="form.ph" :disabled="isReadOnly" :placeholder="isReadOnly ? '' : 'Ej: 6.5'" />
@@ -278,10 +275,6 @@ const dialogTitle = computed(() => {
                         <div class="space-y-2">
                             <Label for="volumen">Volumen (ml)</Label>
                             <Input id="volumen" v-model="form.volumen" :disabled="isReadOnly" :placeholder="isReadOnly ? '' : 'Ej: 50'" />
-                        </div>
-                        <div class="space-y-2">
-                            <Label for="largo">Largo (cm)</Label>
-                            <Input id="largo" v-model="form.largo" :disabled="isReadOnly" :placeholder="isReadOnly ? '' : 'Ej: 3.5'" />
                         </div>
                     </div>
                 </div>

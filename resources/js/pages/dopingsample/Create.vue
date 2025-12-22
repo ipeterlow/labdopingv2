@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import type { DateValue } from '@internationalized/date';
+import { getLocalTimeZone, today } from '@internationalized/date';
 import { computed, ref } from 'vue';
 // shadcn-vue
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronsUpDown, Plus, SendHorizonal, Trash2 } from 'lucide-vue-next';
+import { CalendarIcon, ChevronsUpDown, Plus, SendHorizonal, Trash2 } from 'lucide-vue-next';
 
 // Props desde Inertia (precargadas)
 type Company = { id: number; name: string };
@@ -25,11 +28,22 @@ type SampleItem = {
     category: 'A' | 'B' | 'A-B' | '';
 };
 
+// Obtener fecha y hora actual del sistema
+const getCurrentDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0]; // formato YYYY-MM-DD
+};
+
+const getCurrentTime = () => {
+    const now = new Date();
+    return now.toTimeString().slice(0, 5); // formato HH:MM
+};
+
 const form = useForm({
     company_id: null as number | null,
     sent_at: '',
-    received_at: '',
-    received_at_hour: '',
+    received_at: getCurrentDate(),
+    received_at_hour: getCurrentTime(),
     description: '',
 
     shipping_type: '',
@@ -37,6 +51,33 @@ const form = useForm({
 
     samples: [] as SampleItem[],
 });
+
+// Date pickers con Calendar de shadcn
+// Sent date
+const sentDate = ref<DateValue | undefined>(undefined);
+const sentDateOpen = ref(false);
+
+function updateSentDate(value: DateValue | undefined) {
+    if (value) {
+        sentDate.value = value;
+        const date = value.toDate(getLocalTimeZone());
+        form.sent_at = date.toISOString().split('T')[0];
+        sentDateOpen.value = false;
+    }
+}
+
+// Received date
+const receivedDate = ref<DateValue>(today(getLocalTimeZone()));
+const receivedDateOpen = ref(false);
+
+function updateReceivedDate(value: DateValue | undefined) {
+    if (value) {
+        receivedDate.value = value;
+        const date = value.toDate(getLocalTimeZone());
+        form.received_at = date.toISOString().split('T')[0];
+        receivedDateOpen.value = false;
+    }
+}
 
 // --- Empresas: Combobox 100% shadcn ---
 const companiesOpen = ref(false);
@@ -148,22 +189,58 @@ function submit() {
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-3">
+                        <!-- Fecha envío -->
                         <div class="space-y-2">
-                            <Label for="sent_at">Fecha envío</Label>
-                            <Input id="sent_at" type="date" v-model="form.sent_at" :aria-invalid="!!form.errors.sent_at || undefined" />
+                            <Label for="sent_at" class="px-1">Fecha envío</Label>
+                            <Popover v-model:open="sentDateOpen">
+                                <PopoverTrigger as-child>
+                                    <Button
+                                        id="sent_at"
+                                        variant="outline"
+                                        :class="['w-full justify-start text-left font-normal', !sentDate && 'text-muted-foreground']"
+                                        :aria-invalid="!!form.errors.sent_at || undefined"
+                                    >
+                                        <CalendarIcon class="mr-2 h-4 w-4" />
+                                        {{ sentDate ? sentDate.toDate(getLocalTimeZone()).toLocaleDateString('es-CL') : 'Selecciona fecha…' }}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent class="w-auto overflow-hidden p-0" align="start">
+                                    <Calendar :model-value="sentDate" @update:model-value="updateSentDate" />
+                                </PopoverContent>
+                            </Popover>
                             <p v-if="form.errors.sent_at" class="text-sm text-red-600">{{ form.errors.sent_at }}</p>
                         </div>
+
+                        <!-- Fecha recepción -->
                         <div class="space-y-2">
-                            <Label for="received_at">Fecha recepción</Label>
-                            <Input id="received_at" type="date" v-model="form.received_at" :aria-invalid="!!form.errors.received_at || undefined" />
+                            <Label for="received_at" class="px-1">Fecha recepción</Label>
+                            <Popover v-model:open="receivedDateOpen">
+                                <PopoverTrigger as-child>
+                                    <Button
+                                        id="received_at"
+                                        variant="outline"
+                                        class="w-full justify-start text-left font-normal"
+                                        :aria-invalid="!!form.errors.received_at || undefined"
+                                    >
+                                        <CalendarIcon class="mr-2 h-4 w-4" />
+                                        {{ receivedDate.toDate(getLocalTimeZone()).toLocaleDateString('es-CL') }}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent class="w-auto overflow-hidden p-0" align="start">
+                                    <Calendar :model-value="receivedDate" @update:model-value="updateReceivedDate" />
+                                </PopoverContent>
+                            </Popover>
                             <p v-if="form.errors.received_at" class="text-sm text-red-600">{{ form.errors.received_at }}</p>
                         </div>
+
+                        <!-- Hora recepción -->
                         <div class="space-y-2">
-                            <Label for="received_at_hour">Hora recepción</Label>
+                            <Label for="received_at_hour" class="px-1">Hora recepción</Label>
                             <Input
                                 id="received_at_hour"
                                 type="time"
                                 v-model="form.received_at_hour"
+                                class="appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                                 :aria-invalid="!!form.errors.received_at_hour || undefined"
                             />
                             <p v-if="form.errors.received_at_hour" class="text-sm text-red-600">{{ form.errors.received_at_hour }}</p>

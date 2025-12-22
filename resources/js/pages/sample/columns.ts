@@ -15,6 +15,8 @@ export interface Sample {
     sample_taken_at: string;
     results_at: string;
     company_name: string;
+    tiempo_recepcion: number | null;
+    tiempo_respuesta: number | null;
 }
 
 export const sampleColumns: ColumnDef<Sample>[] = [
@@ -69,6 +71,22 @@ export const sampleColumns: ColumnDef<Sample>[] = [
         accessorKey: 'analyzed_at',
         header: 'Fecha de Análisis',
         cell: (info) => info.getValue(),
+    },
+    {
+        accessorKey: 'tiempo_recepcion',
+        header: 'Tiempo Recepción',
+        cell: (info) => {
+            const value = info.getValue() as number | null;
+            return value !== null ? `${value} días` : '—';
+        },
+    },
+    {
+        accessorKey: 'tiempo_respuesta',
+        header: 'Tiempo de Respuesta',
+        cell: (info) => {
+            const value = info.getValue() as number | null;
+            return value !== null ? `${value} días` : '—';
+        },
     },
     {
         id: 'actions',

@@ -11,11 +11,11 @@ import type { DateValue } from '@internationalized/date';
 import { getLocalTimeZone, parseDate } from '@internationalized/date';
 import { CalendarIcon } from 'lucide-vue-next';
 import { computed, reactive, ref, watch } from 'vue';
-import type { UrineSample } from './columns';
+import type { HairSample } from './columns';
 
 const props = defineProps<{
     open: boolean;
-    sample: UrineSample | null;
+    sample: HairSample | null;
     mode: 'view' | 'edit';
 }>();
 
@@ -43,7 +43,7 @@ const drugOptions = [
 const fechaIngresoDate = ref<DateValue | undefined>(undefined);
 const fechaIngresoOpen = ref(false);
 
-// Checkboxes states (usar reactive en lugar de ref para objetos)
+// Checkboxes states
 const screeningChecks = reactive<Record<string, boolean>>({
     THC: false,
     COC: false,
@@ -62,10 +62,8 @@ const confirmacionChecks = reactive<Record<string, boolean>>({
 
 const form = useForm({
     internal_id: '',
-    ph: '',
-    densidad: '',
-    volumen: '',
     largo: '',
+    color: '',
     screening: [] as string[],
     confirmacion: [] as string[],
     observaciones: '',
@@ -92,10 +90,8 @@ watch(
         if (isOpen && sample && typeof sample === 'object') {
             // Llenar datos básicos
             form.internal_id = sample.internal_id || '';
-            form.ph = sample.ph || '';
-            form.densidad = sample.densidad || '';
-            form.volumen = sample.volumen || '';
             form.largo = sample.largo || '';
+            form.color = sample.color || '';
             form.observaciones = sample.observaciones || '';
             form.cantidad_droga = sample.cantidad_droga || null;
             form.encargado_ingreso = sample.encargado_ingreso || '';
@@ -198,10 +194,8 @@ const handleSubmit = () => {
 
     const dataToSend = {
         internal_id: form.internal_id,
-        ph: form.ph,
-        densidad: form.densidad,
-        volumen: form.volumen,
         largo: form.largo,
+        color: form.color,
         screening: screeningString,
         confirmacion: confirmacionString,
         observaciones: form.observaciones,
@@ -211,7 +205,7 @@ const handleSubmit = () => {
     };
 
     // El registro en characteristic_samples ya existe, solo actualizar
-    const endpoint = route('bookurinesample.update', props.sample.id_characteristic_samples);
+    const endpoint = route('bookhairsample.update', props.sample.id_characteristic_samples);
     form.transform(() => dataToSend).put(endpoint, {
         preserveScroll: true,
         onSuccess: () => {
@@ -225,8 +219,8 @@ const handleSubmit = () => {
 };
 
 const dialogTitle = computed(() => {
-    if (props.mode === 'view') return 'Ver Características de Orina';
-    return 'Editar Características de Orina';
+    if (props.mode === 'view') return 'Ver Características de Pelo';
+    return 'Editar Características de Pelo';
 });
 </script>
 
@@ -266,27 +260,19 @@ const dialogTitle = computed(() => {
                 <!-- Características Físicas -->
                 <div class="space-y-4">
                     <h3 class="font-semibold">Características Físicas</h3>
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <div class="space-y-2">
-                            <Label for="ph">pH</Label>
-                            <Input id="ph" v-model="form.ph" :disabled="isReadOnly" :placeholder="isReadOnly ? '' : 'Ej: 6.5'" />
-                        </div>
-                        <div class="space-y-2">
-                            <Label for="densidad">Densidad</Label>
-                            <Input id="densidad" v-model="form.densidad" :disabled="isReadOnly" :placeholder="isReadOnly ? '' : 'Ej: 1.020'" />
-                        </div>
-                        <div class="space-y-2">
-                            <Label for="volumen">Volumen (ml)</Label>
-                            <Input id="volumen" v-model="form.volumen" :disabled="isReadOnly" :placeholder="isReadOnly ? '' : 'Ej: 50'" />
-                        </div>
+                    <div class="grid gap-4 sm:grid-cols-2">
                         <div class="space-y-2">
                             <Label for="largo">Largo (cm)</Label>
                             <Input id="largo" v-model="form.largo" :disabled="isReadOnly" :placeholder="isReadOnly ? '' : 'Ej: 3.5'" />
                         </div>
+                        <div class="space-y-2">
+                            <Label for="color">Color</Label>
+                            <Input id="color" v-model="form.color" :disabled="isReadOnly" :placeholder="isReadOnly ? '' : 'Ej: Negro'" />
+                        </div>
                     </div>
                 </div>
 
-                <!-- Análisis con Checkboxes -->
+                <!-- Análisis -->
                 <div class="space-y-6">
                     <h3 class="font-semibold">Análisis</h3>
 

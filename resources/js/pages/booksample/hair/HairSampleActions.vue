@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { router } from '@inertiajs/vue3';
 import { Eye, Pencil, RefreshCw } from 'lucide-vue-next';
 import { inject, ref } from 'vue';
-import type { UrineSample } from './columns';
+import type { HairSample } from './columns';
 
 const props = defineProps<{
-    sample: UrineSample;
+    sample: HairSample;
 }>();
 
-const handleEdit = inject<(sample: UrineSample) => void>('handleEdit');
-const handleView = inject<(sample: UrineSample) => void>('handleView');
+const handleEdit = inject<(sample: HairSample) => void>('handleEdit');
+const handleView = inject<(sample: HairSample) => void>('handleView');
 const showChangeStatus = ref(false);
 </script>
 
@@ -32,7 +32,7 @@ const showChangeStatus = ref(false);
         v-model:open="showChangeStatus"
         :sample-id="sample.sample_id"
         :current-status="sample.status_id"
-        route-name="bookurinesample.updateStatus"
-        @success="() => router.reload({ only: ['urineSamples'] })"
+        route-name="bookhairsample.updateStatus"
+        @success="() => router.reload({ only: ['hairSamples'] })"
     />
 </template>

@@ -86,17 +86,12 @@ class DopingSampleController extends Controller
             $data['received_at'].' '.$data['received_at_hour']
         );
 
-        $lastReception = Sample::latest()
-            ->where('reception_id', '!=', null)
+        // Obtener el reception_id más alto y sumar 1
+        $maxReceptionId = Sample::whereNotNull('reception_id')
             ->where('reception_id', '!=', '')
-            ->first();
-        $keygen = 0;
-        if (! $lastReception) {
-            $keygen = 1;
-        } else {
-            $keygen = $lastReception['reception_id'];
-            $keygen = ++$keygen;
-        }
+            ->max('reception_id');
+        
+        $keygen = $maxReceptionId ? $maxReceptionId + 1 : 1;
         // Campos comunes para todas las filas de samples
         $commons = [
             'company_id' => $data['company_id'],
@@ -120,7 +115,7 @@ class DopingSampleController extends Controller
                     'type' => $s['type'],
                     'category' => 'A',
                 ]));
-                
+
                 // Crear muestra categoría B
                 Sample::create(array_merge($commons, [
                     'external_id' => $s['external'],
@@ -414,5 +409,21 @@ class DopingSampleController extends Controller
             ->setPaper('letter', 'portrait');
 
         return $pdf->download("Recepcion-Muestras-{$sample->external_id}.pdf");
+    }
+
+    /**
+     * Update the status of the specified sample.
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'status' => 'required|integer|min:1|max:5',
+        ]);
+
+        $sample = Sample::findOrFail($id);
+        $sample->status = $validated['status'];
+        $sample->save();
+
+        return redirect()->back()->with('success', 'Estado de muestra actualizado correctamente');
     }
 }

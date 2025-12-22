@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ChangeStatusDialog from '@/components/ChangeStatusDialog.vue';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -14,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import UploadDocumentDialog from '@/components/UploadDocumentDialog.vue';
 import { router } from '@inertiajs/vue3';
-import { ClipboardList, Eye, FileDown, FileUp, MoreHorizontal, Pencil, Trash2 } from 'lucide-vue-next';
+import { ClipboardList, Eye, FileDown, FileUp, MoreHorizontal, Pencil, RefreshCw, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -26,10 +27,14 @@ const props = defineProps<{
     pdf?: boolean;
     uploadInforme?: boolean;
     uploadCadenaCustodia?: boolean;
+    changeStatus?: boolean;
+    currentStatus?: number;
+    statusRouteName?: string;
 }>();
 
 const showUploadInforme = ref(false);
 const showUploadCadena = ref(false);
+const showChangeStatus = ref(false);
 const uploadMessage = ref<string | null>(null);
 
 const goToEdit = () => router.visit(route(`${props.resource}.edit`, props.id));
@@ -92,6 +97,12 @@ const handleUploaded = (tipo: string) => {
                     Subir Cadena Custodia
                 </DropdownMenuItem>
 
+                <!-- Cambiar Estado -->
+                <DropdownMenuItem v-if="changeStatus !== false" @click="showChangeStatus = true">
+                    <RefreshCw class="mr-2 h-4 w-4 text-purple-600" />
+                    Cambiar Estado
+                </DropdownMenuItem>
+
                 <!-- Eliminar -->
                 <AlertDialogTrigger v-if="destroy !== false" as-child>
                     <DropdownMenuItem class="text-red-600" @select.prevent>
@@ -143,6 +154,16 @@ const handleUploaded = (tipo: string) => {
         description="Selecciona un archivo PDF o toma una foto de la cadena de custodia."
         action="/documents/upload-cadena"
         @uploaded="handleUploaded('Cadena de Custodia')"
+    />
+
+    <!-- Diálogo de Cambio de Estado -->
+    <ChangeStatusDialog
+        v-if="changeStatus !== false"
+        v-model:open="showChangeStatus"
+        :sample-id="Number(id)"
+        :current-status="currentStatus || 1"
+        :route-name="statusRouteName || `${resource}.updateStatus`"
+        @success="() => router.reload({ only: ['samples'] })"
     />
 
     <!-- Mensaje de confirmación dentro de la vista -->
