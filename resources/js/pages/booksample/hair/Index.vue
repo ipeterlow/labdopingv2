@@ -3,9 +3,10 @@ import DataTable from '@/components/ui/table/DataTable.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { PageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
 import { HairSample, hairSampleColumns } from './columns';
 import HairSampleDialog from './HairSampleDialog.vue';
+import ResultsDialog from './ResultsDialog.vue';
 
 const page = usePage<PageProps>();
 const rawData = computed(() => (page.props.hairSamples as unknown as HairSample[]) ?? []);
@@ -25,6 +26,10 @@ const dialogOpen = ref(false);
 const selectedSample = ref<HairSample | null>(null);
 const dialogMode = ref<'view' | 'edit'>('edit');
 
+// Estado del dialog de resultados
+const resultsDialogOpen = ref(false);
+const selectedSampleForResults = ref<HairSample | null>(null);
+
 // Manejar eventos de las acciones
 const handleEdit = (sample: HairSample) => {
     selectedSample.value = sample;
@@ -38,18 +43,24 @@ const handleView = (sample: HairSample) => {
     dialogOpen.value = true;
 };
 
+const handleResults = (sample: HairSample) => {
+    selectedSampleForResults.value = sample;
+    resultsDialogOpen.value = true;
+};
+
 const handleSuccess = () => {
     // Recargar la página para obtener datos actualizados
     router.reload({ only: ['hairSamples'] });
 };
 
 // Proporcionar handlers globalmente a través de provide/inject
-import { provide } from 'vue';
 provide('handleEdit', handleEdit);
 provide('handleView', handleView);
+provide('handleResults', handleResults);
 </script>
 
 <template>
+
     <Head title="Libro de Muestras - Pelo" />
     <AppLayout>
         <div class="p-4">
@@ -58,15 +69,17 @@ provide('handleView', handleView);
                 <p class="text-sm text-muted-foreground">Gestión de características de muestras de pelo</p>
             </div>
 
-            <DataTable
-                :columns="hairSampleColumns"
-                :data="data"
+            <DataTable :columns="hairSampleColumns" :data="data"
                 search-placeholder="Buscar por ID externo, interno, empresa..."
-                :searchable-columns="['external_id', 'internal_id', 'company_name', 'largo', 'color']"
-            />
+                :searchable-columns="['external_id', 'internal_id', 'company_name', 'largo', 'color']" />
 
             <!-- Dialog para editar/ver -->
-            <HairSampleDialog v-model:open="dialogOpen" :sample="selectedSample" :mode="dialogMode" @success="handleSuccess" />
+            <HairSampleDialog v-model:open="dialogOpen" :sample="selectedSample" :mode="dialogMode"
+                @success="handleSuccess" />
+
+            <!-- Dialog para resultados -->
+            <ResultsDialog v-model:open="resultsDialogOpen" :sample="selectedSampleForResults"
+                @success="handleSuccess" />
         </div>
     </AppLayout>
 </template>

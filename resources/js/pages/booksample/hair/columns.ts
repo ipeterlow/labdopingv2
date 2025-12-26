@@ -20,6 +20,8 @@ export interface HairSample {
     encargado_ingreso?: string;
     fecha_ingreso?: string;
     sample_id: number;
+    result_gcms?: string;
+    result_cobas?: string;
 }
 
 export const hairSampleColumns: ColumnDef<HairSample>[] = [

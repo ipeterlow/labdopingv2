@@ -47,7 +47,7 @@ class BookUrineSampleController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * 
+     *
      * Nota: Este método no se utiliza porque el registro en characteristic_samples
      * se crea automáticamente al crear la muestra. Solo se actualiza mediante update().
      */
@@ -92,14 +92,14 @@ class BookUrineSampleController extends Controller
         ]);
 
         \Log::info('📥 Datos validados recibidos:', $validated);
-        \Log::info('📥 Screening: ' . ($validated['screening'] ?? 'null'));
-        \Log::info('📥 Confirmacion: ' . ($validated['confirmacion'] ?? 'null'));
+        \Log::info('📥 Screening: '.($validated['screening'] ?? 'null'));
+        \Log::info('📥 Confirmacion: '.($validated['confirmacion'] ?? 'null'));
 
         $characteristic = CharacteristicSample::findOrFail($id);
 
         // Preparar datos para actualizar en la tabla samples
         $sampleData = [];
-        
+
         if (isset($validated['internal_id'])) {
             $sampleData['internal_id'] = $validated['internal_id'];
             unset($validated['internal_id']);
@@ -110,7 +110,7 @@ class BookUrineSampleController extends Controller
         }
 
         // Actualizar tabla samples
-        if (!empty($sampleData)) {
+        if (! empty($sampleData)) {
             $characteristic->sample()->update($sampleData);
         }
 
@@ -143,5 +143,22 @@ class BookUrineSampleController extends Controller
         $sample->save();
 
         return redirect()->back()->with('success', 'Estado de muestra actualizado correctamente');
+    }
+
+    /**
+     * Update the results (GC/MS and COBAS) of the specified sample.
+     */
+    public function updateResults(Request $request, string $id)
+    {
+        $validated = $request->validate([
+            'result_gcms' => ['nullable', 'string'],
+            'result_cobas' => ['nullable', 'string'],
+        ]);
+
+        $characteristic = CharacteristicSample::findOrFail($id);
+        $characteristic->update($validated);
+
+        return redirect()->route('bookurinesample.index')
+            ->with('success', 'Resultados de la muestra actualizados correctamente.');
     }
 }

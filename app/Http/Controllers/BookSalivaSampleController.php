@@ -91,7 +91,7 @@ class BookSalivaSampleController extends Controller
 
         // Preparar datos para actualizar en la tabla samples
         $sampleData = [];
-        
+
         if (isset($validated['internal_id'])) {
             $sampleData['internal_id'] = $validated['internal_id'];
             unset($validated['internal_id']);
@@ -102,7 +102,7 @@ class BookSalivaSampleController extends Controller
         }
 
         // Actualizar tabla samples
-        if (!empty($sampleData)) {
+        if (! empty($sampleData)) {
             $characteristic->sample()->update($sampleData);
         }
 
@@ -135,5 +135,22 @@ class BookSalivaSampleController extends Controller
         $sample->save();
 
         return redirect()->back()->with('success', 'Estado de muestra actualizado correctamente');
+    }
+
+    /**
+     * Update the results (GC/MS and COBAS) of the specified sample.
+     */
+    public function updateResults(Request $request, string $id)
+    {
+        $validated = $request->validate([
+            'result_gcms' => ['nullable', 'string'],
+            'result_cobas' => ['nullable', 'string'],
+        ]);
+
+        $characteristic = CharacteristicSample::findOrFail($id);
+        $characteristic->update($validated);
+
+        return redirect()->route('booksalivasample.index')
+            ->with('success', 'Resultados de la muestra actualizados correctamente.');
     }
 }

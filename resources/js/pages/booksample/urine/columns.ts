@@ -23,6 +23,8 @@ export interface UrineSample {
     encargado_ingreso?: string;
     fecha_ingreso?: string;
     sample_id: number;
+    result_gcms?: string;
+    result_cobas?: string;
 }
 
 export const urineSampleColumns: ColumnDef<UrineSample>[] = [

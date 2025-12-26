@@ -61,6 +61,8 @@ class CharacteristicSample extends Model
         'encargado_ingreso',
         'fecha_ingreso',
         'sample_id',
+        'result_gcms',
+        'result_cobas'
     ];
 
     public function sample()
