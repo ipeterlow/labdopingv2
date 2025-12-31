@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import UserInfo from '@/components/UserInfo.vue';
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/composables/usePermissions';
 import type { User } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
 import { Hand, LayoutGrid, LogOut, Settings, UserRoundPlus } from 'lucide-vue-next';
@@ -8,6 +9,8 @@ import { Hand, LayoutGrid, LogOut, Settings, UserRoundPlus } from 'lucide-vue-ne
 interface Props {
     user: User;
 }
+
+const { can } = usePermissions();
 
 const handleLogout = () => {
     router.flushAll();
@@ -23,27 +26,27 @@ defineProps<Props>();
         </div>
     </DropdownMenuLabel>
     <DropdownMenuSeparator />
-    <DropdownMenuGroup>
-        <DropdownMenuItem :as-child="true">
+    <DropdownMenuGroup v-if="can('users.index') || can('roles.index') || can('permissions.index')">
+        <DropdownMenuItem v-if="can('users.index')" :as-child="true">
             <Link class="block w-full" :href="route('users.index')" prefetch as="button">
                 <UserRoundPlus class="mr-2 h-4 w-4" />
                 Usuario
             </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem :as-child="true">
+        <DropdownMenuItem v-if="can('roles.index')" :as-child="true">
             <Link class="block w-full" :href="route('roles.index')" prefetch as="button">
                 <LayoutGrid class="mr-2 h-4 w-4" />
                 Roles
             </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem :as-child="true">
+        <DropdownMenuItem v-if="can('permissions.index')" :as-child="true">
             <Link class="block w-full" :href="route('permissions.index')" prefetch as="button">
                 <Hand class="mr-2 h-4 w-4" />
                 Permisos
             </Link>
         </DropdownMenuItem>
     </DropdownMenuGroup>
-    <DropdownMenuSeparator />
+    <DropdownMenuSeparator v-if="can('users.index') || can('roles.index') || can('permissions.index')" />
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">
             <Link class="block w-full" :href="route('profile.edit')" prefetch as="button">

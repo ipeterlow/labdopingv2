@@ -61,7 +61,7 @@ const form = useForm({
 
 // Función para descargar documentos
 const downloadDocument = (documentId: number) => {
-    window.location.href = `/download/${documentId}`;
+    window.location.href = route('documents.download', documentId);
 };
 </script>
 <template>
