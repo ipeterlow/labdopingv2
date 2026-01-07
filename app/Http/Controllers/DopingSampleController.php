@@ -90,7 +90,7 @@ class DopingSampleController extends Controller
         $maxReceptionId = Sample::whereNotNull('reception_id')
             ->where('reception_id', '!=', '')
             ->max('reception_id');
-        
+
         $keygen = $maxReceptionId ? $maxReceptionId + 1 : 1;
         // Campos comunes para todas las filas de samples
         $commons = [

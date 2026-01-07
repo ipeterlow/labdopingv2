@@ -28,7 +28,7 @@ Route::get('dashboard', function () {
 
 // Rutas protegidas por autenticación y permisos
 Route::middleware(['auth'])->group(function () {
-    
+
     // Usuarios
     Route::post('/users', [UserController::class, 'store'])
         ->name('users.store')
@@ -66,7 +66,7 @@ Route::middleware(['auth'])->group(function () {
     // Informes de Muestras
     Route::resource('reportsample', ReportSampleController::class)
         ->middleware('permission:reportsample.index');
-    
+
     // Reporte de Muestras
     Route::resource('sample', SampleController::class)
         ->middleware('permission:sample.index');

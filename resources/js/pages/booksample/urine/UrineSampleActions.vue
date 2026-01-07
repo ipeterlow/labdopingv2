@@ -32,6 +32,11 @@ const showChangeStatus = ref(false);
         </Button>
     </div>
 
-    <ChangeStatusDialog v-model:open="showChangeStatus" :sample-id="sample.sample_id" :current-status="sample.status_id"
-        route-name="bookurinesample.updateStatus" @success="() => router.reload({ only: ['urineSamples'] })" />
+    <ChangeStatusDialog
+        v-model:open="showChangeStatus"
+        :sample-id="sample.sample_id"
+        :current-status="sample.status_id"
+        route-name="bookurinesample.updateStatus"
+        @success="() => router.reload({ only: ['urineSamples'] })"
+    />
 </template>

@@ -60,7 +60,6 @@ provide('handleResults', handleResults);
 </script>
 
 <template>
-
     <Head title="Libro de Muestras - Orina" />
     <AppLayout>
         <div class="p-4">
@@ -69,17 +68,17 @@ provide('handleResults', handleResults);
                 <p class="text-sm text-muted-foreground">Gestión de características de muestras de orina</p>
             </div>
 
-
             <!-- Dialog para resultados -->
-            <ResultsDialog v-model:open="resultsDialogOpen" :sample="selectedSampleForResults"
-                @success="handleSuccess" />
-            <DataTable :columns="urineSampleColumns" :data="data"
+            <ResultsDialog v-model:open="resultsDialogOpen" :sample="selectedSampleForResults" @success="handleSuccess" />
+            <DataTable
+                :columns="urineSampleColumns"
+                :data="data"
                 search-placeholder="Buscar por ID externo, interno, empresa..."
-                :searchable-columns="['external_id', 'internal_id', 'company_name', 'ph', 'densidad']" />
+                :searchable-columns="['external_id', 'internal_id', 'company_name', 'ph', 'densidad']"
+            />
 
             <!-- Dialog para editar/ver -->
-            <UrineSampleDialog v-model:open="dialogOpen" :sample="selectedSample" :mode="dialogMode"
-                @success="handleSuccess" />
+            <UrineSampleDialog v-model:open="dialogOpen" :sample="selectedSample" :mode="dialogMode" @success="handleSuccess" />
         </div>
     </AppLayout>
 </template>

@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use App\Models\User;
 
 class PermissionsSeeder extends Seeder
 {
@@ -107,6 +107,6 @@ class PermissionsSeeder extends Seeder
         }
 
         $this->command->info('Permisos y roles creados exitosamente.');
-        $this->command->info('Permisos creados: ' . count($permissions));
+        $this->command->info('Permisos creados: '.count($permissions));
     }
 }

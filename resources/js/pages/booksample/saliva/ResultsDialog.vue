@@ -113,17 +113,13 @@ const handleSubmit = () => {
         <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-[700px]">
             <DialogHeader>
                 <DialogTitle>Resultados de Muestras</DialogTitle>
-                <DialogDescription v-if="sample"> Muestra: {{ sample.external_id }} - {{ sample.company_name }}
-                </DialogDescription>
+                <DialogDescription v-if="sample"> Muestra: {{ sample.external_id }} - {{ sample.company_name }} </DialogDescription>
             </DialogHeader>
 
             <!-- Mensaje cuando no hay drogas seleccionadas -->
-            <div v-if="!hasDrugs"
-                class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-center dark:border-yellow-800 dark:bg-yellow-950">
-                <p class="text-sm text-yellow-800 dark:text-yellow-200">No hay drogas seleccionadas para ingresar
-                    resultados</p>
-                <p class="mt-1 text-xs text-yellow-600 dark:text-yellow-400">Primero debe seleccionar drogas en la
-                    sección de Screening</p>
+            <div v-if="!hasDrugs" class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-center dark:border-yellow-800 dark:bg-yellow-950">
+                <p class="text-sm text-yellow-800 dark:text-yellow-200">No hay drogas seleccionadas para ingresar resultados</p>
+                <p class="mt-1 text-xs text-yellow-600 dark:text-yellow-400">Primero debe seleccionar drogas en la sección de Screening</p>
             </div>
 
             <!-- Formulario de resultados -->
@@ -132,8 +128,7 @@ const handleSubmit = () => {
                 <div class="rounded-lg border bg-muted/30 p-4">
                     <h3 class="mb-3 font-semibold">Drogas a Analizar</h3>
                     <div class="flex flex-wrap gap-2">
-                        <div v-for="drug in screeningDrugs" :key="drug"
-                            class="rounded-md bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                        <div v-for="drug in screeningDrugs" :key="drug" class="rounded-md bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
                             {{ drug }}
                         </div>
                     </div>
@@ -149,8 +144,7 @@ const handleSubmit = () => {
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div v-for="drug in screeningDrugs" :key="'gcms-' + drug" class="space-y-2">
                             <Label :for="'gcms-' + drug">{{ drug }}</Label>
-                            <Input :id="'gcms-' + drug" v-model="form.results_gcms[drug]"
-                                placeholder="Ej: Positivo, Negativo, 150 ng/ml" />
+                            <Input :id="'gcms-' + drug" v-model="form.results_gcms[drug]" placeholder="Ej: Positivo, Negativo, 150 ng/ml" />
                         </div>
                     </div>
                 </div>
@@ -165,8 +159,7 @@ const handleSubmit = () => {
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div v-for="drug in screeningDrugs" :key="'cobas-' + drug" class="space-y-2">
                             <Label :for="'cobas-' + drug">{{ drug }}</Label>
-                            <Input :id="'cobas-' + drug" v-model="form.results_cobas[drug]"
-                                placeholder="Ej: Positivo, Negativo, 150 ng/ml" />
+                            <Input :id="'cobas-' + drug" v-model="form.results_cobas[drug]" placeholder="Ej: Positivo, Negativo, 150 ng/ml" />
                         </div>
                     </div>
                 </div>

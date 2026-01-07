@@ -60,7 +60,6 @@ provide('handleResults', handleResults);
 </script>
 
 <template>
-
     <Head title="Libro de Muestras - Pelo" />
     <AppLayout>
         <div class="p-4">
@@ -69,17 +68,18 @@ provide('handleResults', handleResults);
                 <p class="text-sm text-muted-foreground">Gestión de características de muestras de pelo</p>
             </div>
 
-            <DataTable :columns="hairSampleColumns" :data="data"
+            <DataTable
+                :columns="hairSampleColumns"
+                :data="data"
                 search-placeholder="Buscar por ID externo, interno, empresa..."
-                :searchable-columns="['external_id', 'internal_id', 'company_name', 'largo', 'color']" />
+                :searchable-columns="['external_id', 'internal_id', 'company_name', 'largo', 'color']"
+            />
 
             <!-- Dialog para editar/ver -->
-            <HairSampleDialog v-model:open="dialogOpen" :sample="selectedSample" :mode="dialogMode"
-                @success="handleSuccess" />
+            <HairSampleDialog v-model:open="dialogOpen" :sample="selectedSample" :mode="dialogMode" @success="handleSuccess" />
 
             <!-- Dialog para resultados -->
-            <ResultsDialog v-model:open="resultsDialogOpen" :sample="selectedSampleForResults"
-                @success="handleSuccess" />
+            <ResultsDialog v-model:open="resultsDialogOpen" :sample="selectedSampleForResults" @success="handleSuccess" />
         </div>
     </AppLayout>
 </template>
