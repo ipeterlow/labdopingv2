@@ -196,14 +196,45 @@ class ReportSampleController extends Controller
 
         $contents = Storage::disk('s3')->get($document->document_archive);
 
-        // Definir el nombre del archivo según el tipo de documento
-        $fileName = $document->type_document === 'informe'
-            ? 'Informe-'.$sample->external_id.'.pdf'
-            : 'Cadena-Custodia-'.$sample->external_id.'.pdf';
+        // Obtener la extensión real del archivo desde el path almacenado en S3
+        $extension = pathinfo($document->document_archive, PATHINFO_EXTENSION);
 
-        return response()->streamDownload(
-            fn () => print ($contents),
-            $fileName
-        );
+        // Si no hay extensión, intentar detectar el tipo por el contenido
+        if (empty($extension)) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_buffer($finfo, $contents);
+            finfo_close($finfo);
+
+            // Mapear MIME types a extensiones
+            $mimeToExtension = [
+                'application/pdf' => 'pdf',
+                'image/jpeg' => 'jpg',
+                'image/jpg' => 'jpg',
+                'image/png' => 'png',
+            ];
+
+            $extension = $mimeToExtension[$mimeType] ?? 'pdf';
+        }
+
+        // Definir el nombre del archivo según el tipo de documento con la extensión real
+        $baseName = $document->type_document === 'informe'
+            ? 'Informe-'.$sample->external_id
+            : 'Cadena-Custodia-'.$sample->external_id;
+
+        $fileName = $baseName.'.'.$extension;
+
+        // Establecer el Content-Type apropiado
+        $contentTypes = [
+            'pdf' => 'application/pdf',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+        ];
+
+        $contentType = $contentTypes[strtolower($extension)] ?? 'application/octet-stream';
+
+        return response($contents, 200)
+            ->header('Content-Type', $contentType)
+            ->header('Content-Disposition', 'attachment; filename="'.$fileName.'"');
     }
 }

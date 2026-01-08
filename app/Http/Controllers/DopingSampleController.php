@@ -86,12 +86,13 @@ class DopingSampleController extends Controller
             $data['received_at'].' '.$data['received_at_hour']
         );
 
-        // Obtener el reception_id más alto y sumar 1
-        $maxReceptionId = Sample::whereNotNull('reception_id')
-            ->where('reception_id', '!=', '')
-            ->max('reception_id');
-
-        $keygen = $maxReceptionId ? $maxReceptionId + 1 : 1;
+        // Obtener el reception_id más alto de todos los registros y sumar 1
+        // Usamos CAST para asegurar comparación numérica (por si es string en DB)
+        $maxReceptionId = DB::table('samples')
+            ->whereNotNull('reception_id')
+            ->selectRaw('MAX(CAST(reception_id AS UNSIGNED)) as max_id')
+            ->value('max_id');
+        $keygen = $maxReceptionId ? (int) $maxReceptionId + 1 : 1;
         // Campos comunes para todas las filas de samples
         $commons = [
             'company_id' => $data['company_id'],
@@ -344,7 +345,7 @@ class DopingSampleController extends Controller
         // Trae todas las muestras relacionadas, sólo con columnas necesarias
         $samples = Sample::query()
             ->where('reception_id', $sample->reception_id)
-            ->get(['id', 'external_id', 'category', 'type']);
+            ->get(['id', 'external_id', 'category', 'type','reception_id']);
 
         $types = ['orina', 'pelo', 'saliva', 'suero'];
 
@@ -385,7 +386,7 @@ class DopingSampleController extends Controller
         $companyName = Company::query()->find($sample->company_id)?->name ?? '—';
 
         $data = [
-            'id' => $sample->id,
+            'id' => $sample->reception_id,
             'external_id' => $sample->external_id,
             'received_at' => $receivedAt->isoFormat('dddd D [de] MMMM YYYY'),
             'received_at_hour' => $receivedAt->format('H:i'),
@@ -408,7 +409,7 @@ class DopingSampleController extends Controller
         $pdf = Pdf::loadView('pdfs.recepcion_muestras', $data)
             ->setPaper('letter', 'portrait');
 
-        return $pdf->download("Recepcion-Muestras-{$sample->external_id}.pdf");
+        return $pdf->download("Recepcion-Muestras-{$sample->reception_id}.pdf");
     }
 
     /**
