@@ -345,7 +345,7 @@ class DopingSampleController extends Controller
         // Trae todas las muestras relacionadas, sólo con columnas necesarias
         $samples = Sample::query()
             ->where('reception_id', $sample->reception_id)
-            ->get(['id', 'external_id', 'category', 'type','reception_id']);
+            ->get(['id', 'external_id', 'category', 'type', 'reception_id']);
 
         $types = ['orina', 'pelo', 'saliva', 'suero'];
 

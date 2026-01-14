@@ -71,6 +71,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('sample', SampleController::class)
         ->middleware('permission:sample.index');
 
+    Route::get('/download/{id}', [SampleController::class, 'download'])
+        ->name('documents.download')
+        ->middleware('permission:sample.index');
+
     // Libro Orina
     Route::resource('bookurinesample', BookUrineSampleController::class)
         ->middleware('permission:bookurinesample.index');
