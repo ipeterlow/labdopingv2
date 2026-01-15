@@ -72,7 +72,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:sample.index');
 
     Route::get('/download/{id}', [SampleController::class, 'download'])
-        ->name('documents.download')
+        ->name('samples.download')
         ->middleware('permission:sample.index');
 
     // Libro Orina
