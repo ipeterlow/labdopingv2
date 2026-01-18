@@ -26,6 +26,7 @@ class StoreUserRequest extends FormRequest
             ],
             'roles' => ['nullable', 'array'],
             'roles.*' => ['exists:roles,id'],
+            'current_team_id' => ['nullable', 'exists:companies,id'],
         ];
     }
 }

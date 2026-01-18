@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { buttonVariants } from '@/components/ui/button';
 import DataTable from '@/components/ui/table/DataTable.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { PageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, provide, ref, watch } from 'vue';
 import { SalivaSample, salivaSampleColumns } from './columns';
+import ExportDialog from './ExportDialog.vue';
 import ResultsDialog from './ResultsDialog.vue';
 import SalivaSampleDialog from './SalivaSampleDialog.vue';
 
@@ -29,6 +31,9 @@ const dialogMode = ref<'view' | 'edit'>('edit');
 // Estado del dialog de resultados
 const resultsDialogOpen = ref(false);
 const selectedSampleForResults = ref<SalivaSample | null>(null);
+
+// Estado del dialog de exportar
+const exportDialogOpen = ref(false);
 
 // Manejar eventos de las acciones
 const handleEdit = (sample: SalivaSample) => {
@@ -68,6 +73,10 @@ provide('handleResults', handleResults);
                 <p class="text-sm text-muted-foreground">Gestión de características de muestras de saliva</p>
             </div>
 
+            <div class="mb-4 flex justify-end gap-2">
+                <button @click="exportDialogOpen = true" :class="buttonVariants({ variant: 'outline', size: 'default' })">Exportar</button>
+            </div>
+
             <DataTable
                 :columns="salivaSampleColumns"
                 :data="data"
@@ -80,6 +89,9 @@ provide('handleResults', handleResults);
 
             <!-- Dialog para resultados -->
             <ResultsDialog v-model:open="resultsDialogOpen" :sample="selectedSampleForResults" @success="handleSuccess" />
+
+            <!-- Dialog para exportar -->
+            <ExportDialog v-model:open="exportDialogOpen" />
         </div>
     </AppLayout>
 </template>

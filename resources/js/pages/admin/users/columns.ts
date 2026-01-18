@@ -8,6 +8,7 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    company: { id: number; name: string } | null;
 }
 
 export const userColumns: ColumnDef<User>[] = [
@@ -28,6 +29,14 @@ export const userColumns: ColumnDef<User>[] = [
         accessorKey: 'email',
         header: 'Email',
         cell: (info) => info.getValue(),
+    },
+    {
+        accessorKey: 'company',
+        header: 'Empresa',
+        cell: ({ row }) => {
+            const company = row.original.company;
+            return company ? company.name : 'Laboratorio';
+        },
     },
     {
         id: 'actions',

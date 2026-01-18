@@ -76,6 +76,9 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:sample.index');
 
     // Libro Orina
+    Route::get('/bookurinesample/export', [BookUrineSampleController::class, 'export'])
+        ->name('bookurinesample.export')
+        ->middleware('permission:bookurinesample.index');
     Route::resource('bookurinesample', BookUrineSampleController::class)
         ->middleware('permission:bookurinesample.index');
     Route::put('/bookurinesample/{id}/status', [BookUrineSampleController::class, 'updateStatus'])
@@ -86,6 +89,9 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:bookurinesample.edit');
 
     // Libro Saliva
+    Route::get('/booksalivasample/export', [BookSalivaSampleController::class, 'export'])
+        ->name('booksalivasample.export')
+        ->middleware('permission:booksalivasample.index');
     Route::resource('booksalivasample', BookSalivaSampleController::class)
         ->middleware('permission:booksalivasample.index');
     Route::put('/booksalivasample/{id}/status', [BookSalivaSampleController::class, 'updateStatus'])
@@ -96,6 +102,9 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:booksalivasample.edit');
 
     // Libro Pelo
+    Route::get('/bookhairsample/export', [BookHairSampleController::class, 'export'])
+        ->name('bookhairsample.export')
+        ->middleware('permission:bookhairsample.index');
     Route::resource('bookhairsample', BookHairSampleController::class)
         ->middleware('permission:bookhairsample.index');
     Route::put('/bookhairsample/{id}/status', [BookHairSampleController::class, 'updateStatus'])

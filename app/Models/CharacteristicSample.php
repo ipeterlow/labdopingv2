@@ -63,6 +63,9 @@ class CharacteristicSample extends Model
         'sample_id',
         'result_gcms',
         'result_cobas',
+        'tipo_muestra',
+        'result_elisa',
+        'result_inmuno',
     ];
 
     public function sample()

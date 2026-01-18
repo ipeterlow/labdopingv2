@@ -1,18 +1,26 @@
 <script setup lang="ts">
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { useForm } from 'laravel-precognition-vue-inertia';
-import { Check, SendHorizonal, X } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { Check, ChevronsUpDown, SendHorizonal, X } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 // Props
 const props = defineProps<{
     roles: Array<{ id: number; name: string }>;
+    companies: Array<{ id: number; name: string }>;
 }>();
+
+// Refs para el combobox y checkbox
+const companyComboboxOpen = ref(false);
+const isLaboratory = ref(false);
 
 // 1) Inicializa el form: método, url y datos iniciales
 const form = useForm('post', '/users', {
@@ -21,10 +29,18 @@ const form = useForm('post', '/users', {
     password: '',
     password_confirmation: '',
     roles: [] as number[],
+    current_team_id: null as number | null,
 });
 
 // (Opcional) Ajusta el debounce de la validación (ms)
 form.setValidationTimeout(400); // UX más ágil
+
+// Computed para obtener el nombre de la company seleccionada
+const selectedCompanyName = computed(() => {
+    if (!form.current_team_id) return 'Selecciona una empresa...';
+    const company = props.companies.find((c) => c.id === form.current_team_id);
+    return company ? company.name : 'Selecciona una empresa...';
+});
 
 // Función para alternar roles
 const toggleRole = (roleId: number) => {
@@ -51,6 +67,14 @@ const removeRole = (roleId: number) => {
     const index = form.roles.indexOf(roleId);
     if (index !== -1) {
         form.roles.splice(index, 1);
+    }
+};
+
+// Función para manejar el checkbox de laboratorio
+const handleLaboratoryChange = (checked: boolean) => {
+    isLaboratory.value = checked;
+    if (checked) {
+        form.current_team_id = null;
     }
 };
 
@@ -133,6 +157,65 @@ const submit = () => {
                         />
                         <p v-if="form.invalid('password_confirmation')" class="text-sm text-red-600">
                             {{ form.errors.password_confirmation }}
+                        </p>
+                    </div>
+
+                    <!-- EMPRESA -->
+                    <div class="space-y-3">
+                        <Label>Empresa</Label>
+
+                        <!-- Checkbox de Laboratorio -->
+                        <div class="flex items-center space-x-2">
+                            <Checkbox id="laboratory" :checked="isLaboratory" @update:checked="handleLaboratoryChange" />
+                            <Label for="laboratory" class="cursor-pointer text-sm font-normal"> Usuario de Laboratorio (sin empresa asignada) </Label>
+                        </div>
+
+                        <!-- Combobox de Empresas -->
+                        <div class="space-y-2">
+                            <Popover v-model:open="companyComboboxOpen">
+                                <PopoverTrigger as-child>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        :aria-expanded="companyComboboxOpen"
+                                        :disabled="isLaboratory"
+                                        class="w-full justify-between"
+                                    >
+                                        {{ selectedCompanyName }}
+                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent class="w-full p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Buscar empresa..." />
+                                        <CommandList>
+                                            <CommandEmpty>No se encontró la empresa.</CommandEmpty>
+                                            <CommandGroup>
+                                                <CommandItem
+                                                    v-for="company in companies"
+                                                    :key="company.id"
+                                                    :value="company.name"
+                                                    @select="
+                                                        () => {
+                                                            form.current_team_id = company.id;
+                                                            companyComboboxOpen = false;
+                                                        }
+                                                    "
+                                                >
+                                                    <Check
+                                                        :class="['mr-2 h-4 w-4', form.current_team_id === company.id ? 'opacity-100' : 'opacity-0']"
+                                                    />
+                                                    {{ company.name }}
+                                                </CommandItem>
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+
+                        <p v-if="form.invalid('current_team_id')" class="text-sm text-red-600">
+                            {{ form.errors.current_team_id }}
                         </p>
                     </div>
 

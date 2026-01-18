@@ -19,7 +19,7 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $query = User::query();
+        $query = User::query()->with('currentTeam');
 
         if ($filter = $request->input('filter')) {
             $query->where(function ($q) use ($filter) {
@@ -28,7 +28,14 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->get();
+        $users = $query->get()->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'company' => $user->currentTeam ? ['id' => $user->currentTeam->id, 'name' => $user->currentTeam->name] : null,
+            ];
+        });
 
         return Inertia::render('admin/users/Index', [
             'users' => $users,
@@ -39,9 +46,11 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
+        $companies = \App\Models\Company::all(['id', 'name']);
 
         return Inertia::render('admin/users/Create', [
             'roles' => $roles,
+            'companies' => $companies,
         ]);
     }
 
@@ -51,6 +60,7 @@ class UserController extends Controller
             'name' => $request->string('name'),
             'email' => $request->string('email'),
             'password' => Hash::make($request->string('password')),
+            'current_team_id' => $request->input('current_team_id'),
         ]);
 
         // Asignar roles al usuario
@@ -64,7 +74,7 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        $user->load('roles');
+        $user->load(['roles', 'currentTeam']);
 
         return Inertia::render('admin/users/Show', [
             'user' => [
@@ -72,6 +82,7 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'roles' => $user->roles,
+                'company' => $user->currentTeam ? ['id' => $user->currentTeam->id, 'name' => $user->currentTeam->name] : null,
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
             ],
@@ -82,6 +93,7 @@ class UserController extends Controller
     {
         $user->load('roles');
         $roles = Role::all();
+        $companies = \App\Models\Company::all(['id', 'name']);
 
         return Inertia::render('admin/users/Edit', [
             'user' => [
@@ -89,8 +101,10 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'roles' => $user->roles->pluck('id')->toArray(),
+                'current_team_id' => $user->current_team_id,
             ],
             'roles' => $roles,
+            'companies' => $companies,
         ]);
     }
 
@@ -102,10 +116,13 @@ class UserController extends Controller
             'password' => 'nullable|string|min:6|confirmed',
             'roles' => 'nullable|array',
             'roles.*' => 'exists:roles,id',
+            'current_team_id' => 'nullable|exists:companies,id',
         ]);
 
         if (empty($data['password'])) {
             unset($data['password']);
+        } else {
+            $data['password'] = \Illuminate\Support\Facades\Hash::make($data['password']);
         }
 
         $user->update($data);

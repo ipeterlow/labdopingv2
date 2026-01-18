@@ -7,6 +7,7 @@ export interface SalivaSample {
     external_id: string;
     internal_id: string;
     type: string;
+    category: string;
     status_id: number;
     received_at: string;
     analyzed_at: string;
@@ -34,6 +35,11 @@ export const salivaSampleColumns: ColumnDef<SalivaSample>[] = [
     {
         accessorKey: 'internal_id',
         header: 'Nº Interno',
+        cell: (info) => info.getValue() || '—',
+    },
+    {
+        accessorKey: 'category',
+        header: 'Tipo',
         cell: (info) => info.getValue() || '—',
     },
     {

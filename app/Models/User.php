@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'current_team_id',
     ];
 
     /**
@@ -45,5 +46,13 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the current team (company) that the user belongs to.
+     */
+    public function currentTeam()
+    {
+        return $this->belongsTo(Company::class, 'current_team_id');
     }
 }

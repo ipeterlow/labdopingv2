@@ -23,6 +23,7 @@ class BookSalivaSampleController extends Controller
                 'samples.external_id',
                 'samples.internal_id',
                 'samples.type',
+                'samples.category',
                 'samples.status as status_id',
                 'samples.received_at',
                 'samples.analyzed_at',
@@ -153,4 +154,122 @@ class BookSalivaSampleController extends Controller
         return redirect()->route('booksalivasample.index')
             ->with('success', 'Resultados de la muestra actualizados correctamente.');
     }
+
+    /**
+     * Export saliva samples to Excel based on date range
+     */
+    public function export(Request $request)
+    {
+        $request->validate([
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+        ]);
+
+        $samples = CharacteristicSample::query()
+            ->join('samples', 'characteristic_samples.sample_id', '=', 'samples.id')
+            ->join('companies', 'samples.company_id', '=', 'companies.id')
+            ->where('samples.type', '=', 'saliva')
+            ->whereBetween('samples.analyzed_at', [$request->fecha_inicio, $request->fecha_fin])
+            ->select([
+                'samples.external_id',
+                'samples.internal_id',
+                'samples.category',
+                'companies.name as company_name',
+                'samples.received_at',
+                'samples.analyzed_at',
+                'characteristic_samples.ph',
+                'characteristic_samples.densidad',
+                'characteristic_samples.volumen',
+                'characteristic_samples.screening',
+                'characteristic_samples.confirmacion',
+                'characteristic_samples.observaciones',
+                'characteristic_samples.cantidad_droga',
+                'characteristic_samples.encargado_ingreso',
+                'characteristic_samples.fecha_ingreso',
+                'characteristic_samples.result_gcms',
+                'characteristic_samples.result_cobas',
+            ])
+            ->orderBy('samples.analyzed_at', 'asc')
+            ->get();
+
+        // Crear spreadsheet
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Headers
+        $headers = [
+            'Nº Externo',
+            'Nº Interno',
+            'Tipo',
+            'Empresa',
+            'Fecha Recepción',
+            'Fecha Análisis',
+            'pH',
+            'Densidad',
+            'Volumen',
+            'Screening',
+            'Confirmación',
+            'Observaciones',
+            'Cantidad de Droga',
+            'Encargado de Ingreso',
+            'Fecha de Ingreso',
+            'Resultado GC/MS',
+            'Resultado COBAS',
+        ];
+
+        $sheet->fromArray($headers, null, 'A1');
+
+        // Estilo para headers
+        $headerStyle = [
+            'font' => ['bold' => true],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'E2E8F0']
+            ]
+        ];
+        $sheet->getStyle('A1:Q1')->applyFromArray($headerStyle);
+
+        // Data rows
+        $row = 2;
+        foreach ($samples as $sample) {
+            $sheet->fromArray([
+                $sample->external_id,
+                $sample->internal_id ?: '-',
+                $sample->category ?: '-',
+                $sample->company_name,
+                $sample->received_at ?: '-',
+                $sample->analyzed_at ?: '-',
+                $sample->ph ?: '-',
+                $sample->densidad ?: '-',
+                $sample->volumen ?: '-',
+                $sample->screening ?: '-',
+                $sample->confirmacion ?: '-',
+                $sample->observaciones ?: '-',
+                $sample->cantidad_droga ?: '-',
+                $sample->encargado_ingreso ?: '-',
+                $sample->fecha_ingreso ?: '-',
+                $sample->result_gcms ?: '-',
+                $sample->result_cobas ?: '-',
+            ], null, 'A' . $row);
+            $row++;
+        }
+
+        // Auto-ajustar columnas
+        foreach (range('A', 'Q') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Generar archivo
+        $filename = 'muestras_saliva_' . date('Y-m-d_His') . '.xlsx';
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+
+        // Enviar headers
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+        exit;
+    }
 }
+

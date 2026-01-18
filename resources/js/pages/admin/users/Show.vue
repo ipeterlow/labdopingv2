@@ -12,6 +12,7 @@ const props = defineProps<{
         name: string;
         email: string;
         roles: Array<{ id: number; name: string }>;
+        company: { id: number; name: string } | null;
         created_at: string;
         updated_at: string;
     };
@@ -29,13 +30,22 @@ const props = defineProps<{
                     <!-- NAME -->
                     <div class="space-y-2">
                         <Label for="name">Nombre</Label>
-                        <Input id="name" type="text" :value="user.name" readonly />
+                        <Input id="name" type="text" :model-value="user.name" readonly />
                     </div>
 
                     <!-- EMAIL -->
                     <div class="space-y-2">
                         <Label for="email">Email</Label>
-                        <Input id="email" type="email" :value="user.email" readonly />
+                        <Input id="email" type="email" :model-value="user.email" readonly />
+                    </div>
+
+                    <!-- EMPRESA -->
+                    <div class="space-y-2">
+                        <Label>Empresa</Label>
+                        <div v-if="user.company" class="rounded-md bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
+                            {{ user.company.name }}
+                        </div>
+                        <p v-else class="text-sm text-muted-foreground">Usuario de Laboratorio (sin empresa asignada)</p>
                     </div>
 
                     <!-- ROLES -->

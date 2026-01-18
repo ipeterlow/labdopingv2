@@ -2,18 +2,26 @@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { Check, CheckCircle, X, XCircle } from 'lucide-vue-next';
+import { Check, CheckCircle, ChevronsUpDown, X, XCircle } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 // Props del usuario
 const props = defineProps<{
-    user: { id: number; name: string; email: string; roles: number[] };
+    user: { id: number; name: string; email: string; roles: number[]; current_team_id: number | null };
     roles: Array<{ id: number; name: string }>;
+    companies: Array<{ id: number; name: string }>;
 }>();
+
+// Refs para el combobox y checkbox
+const companyComboboxOpen = ref(false);
+const isLaboratory = ref(props.user.current_team_id === null);
 
 // Formulario
 const form = useForm({
@@ -22,12 +30,20 @@ const form = useForm({
     password: '',
     password_confirmation: '',
     roles: props.user.roles || [],
+    current_team_id: props.user.current_team_id,
 });
 
 // Alert
 const showAlert = ref(false);
 const alertType = ref<'success' | 'error'>('success');
 const alertMessage = ref('');
+
+// Computed para obtener el nombre de la company seleccionada
+const selectedCompanyName = computed(() => {
+    if (!form.current_team_id) return 'Selecciona una empresa...';
+    const company = props.companies.find((c) => c.id === form.current_team_id);
+    return company ? company.name : 'Selecciona una empresa...';
+});
 
 // Función para alternar roles
 const toggleRole = (roleId: number) => {
@@ -54,6 +70,14 @@ const removeRole = (roleId: number) => {
     const index = form.roles.indexOf(roleId);
     if (index !== -1) {
         form.roles.splice(index, 1);
+    }
+};
+
+// Función para manejar el checkbox de laboratorio
+const handleLaboratoryChange = (checked: boolean) => {
+    isLaboratory.value = checked;
+    if (checked) {
+        form.current_team_id = null;
     }
 };
 
@@ -121,6 +145,65 @@ const submit = () => {
                         <Label for="password_confirmation">Confirmar Contraseña</Label>
                         <Input id="password_confirmation" type="password" v-model="form.password_confirmation" />
                         <p v-if="form.errors.password_confirmation" class="text-sm text-red-600">{{ form.errors.password_confirmation }}</p>
+                    </div>
+
+                    <!-- EMPRESA -->
+                    <div class="space-y-3">
+                        <Label>Empresa</Label>
+
+                        <!-- Checkbox de Laboratorio -->
+                        <div class="flex items-center space-x-2">
+                            <Checkbox id="laboratory" :checked="isLaboratory" @update:checked="handleLaboratoryChange" />
+                            <Label for="laboratory" class="cursor-pointer text-sm font-normal"> Usuario de Laboratorio (sin empresa asignada) </Label>
+                        </div>
+
+                        <!-- Combobox de Empresas -->
+                        <div class="space-y-2">
+                            <Popover v-model:open="companyComboboxOpen">
+                                <PopoverTrigger as-child>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        :aria-expanded="companyComboboxOpen"
+                                        :disabled="isLaboratory"
+                                        class="w-full justify-between"
+                                    >
+                                        {{ selectedCompanyName }}
+                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent class="w-full p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Buscar empresa..." />
+                                        <CommandList>
+                                            <CommandEmpty>No se encontró la empresa.</CommandEmpty>
+                                            <CommandGroup>
+                                                <CommandItem
+                                                    v-for="company in companies"
+                                                    :key="company.id"
+                                                    :value="company.name"
+                                                    @select="
+                                                        () => {
+                                                            form.current_team_id = company.id;
+                                                            companyComboboxOpen = false;
+                                                        }
+                                                    "
+                                                >
+                                                    <Check
+                                                        :class="['mr-2 h-4 w-4', form.current_team_id === company.id ? 'opacity-100' : 'opacity-0']"
+                                                    />
+                                                    {{ company.name }}
+                                                </CommandItem>
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+
+                        <p v-if="form.errors.current_team_id" class="text-sm text-red-600">
+                            {{ form.errors.current_team_id }}
+                        </p>
                     </div>
 
                     <!-- ROLES -->

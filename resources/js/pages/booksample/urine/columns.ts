@@ -7,6 +7,7 @@ export interface UrineSample {
     external_id: string;
     internal_id: string;
     type: string;
+    category: string;
     status_id: number;
     received_at: string;
     analyzed_at: string;
@@ -36,6 +37,11 @@ export const urineSampleColumns: ColumnDef<UrineSample>[] = [
     {
         accessorKey: 'internal_id',
         header: 'Nº Interno',
+        cell: (info) => info.getValue() || '—',
+    },
+    {
+        accessorKey: 'category',
+        header: 'Tipo',
         cell: (info) => info.getValue() || '—',
     },
     {

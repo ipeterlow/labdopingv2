@@ -7,6 +7,7 @@ export interface HairSample {
     external_id: string;
     internal_id: string;
     type: string;
+    category: string;
     status_id: number;
     received_at: string;
     analyzed_at: string;
@@ -33,6 +34,11 @@ export const hairSampleColumns: ColumnDef<HairSample>[] = [
     {
         accessorKey: 'internal_id',
         header: 'Nº Interno',
+        cell: (info) => info.getValue() || '—',
+    },
+    {
+        accessorKey: 'category',
+        header: 'Tipo',
         cell: (info) => info.getValue() || '—',
     },
     {

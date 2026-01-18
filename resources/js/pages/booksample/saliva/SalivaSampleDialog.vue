@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from '@inertiajs/vue3';
 import type { DateValue } from '@internationalized/date';
 import { getLocalTimeZone, parseDate } from '@internationalized/date';
-import { CalendarIcon } from 'lucide-vue-next';
+import { CalendarIcon, PlusCircle, X } from 'lucide-vue-next';
 import { computed, reactive, ref, watch } from 'vue';
 import type { SalivaSample } from './columns';
 
@@ -42,6 +42,7 @@ const drugOptions = [
 // Date picker
 const fechaIngresoDate = ref<DateValue | undefined>(undefined);
 const fechaIngresoOpen = ref(false);
+const horaIngreso = ref('');
 
 // Checkboxes states (usar reactive en lugar de ref para objetos)
 const screeningChecks = reactive<Record<string, boolean>>({
@@ -60,6 +61,16 @@ const confirmacionChecks = reactive<Record<string, boolean>>({
     ANF: false,
 });
 
+// Drogas personalizadas (otros)
+const screeningOtros = ref<string[]>([]);
+const confirmacionOtros = ref<string[]>([]);
+
+// Dialogs para agregar otros
+const screeningOtrosDialog = ref(false);
+const confirmacionOtrosDialog = ref(false);
+const screeningOtroInput = ref('');
+const confirmacionOtroInput = ref('');
+
 const form = useForm({
     internal_id: '',
     ph: '',
@@ -76,12 +87,67 @@ const form = useForm({
 // Funciones para manejar toggle manualmente
 const handleScreeningToggle = (drug: string, pressed: boolean) => {
     screeningChecks[drug] = pressed;
-    form.screening = Object.keys(screeningChecks).filter((key) => screeningChecks[key]);
+    updateScreeningForm();
 };
 
 const handleConfirmacionToggle = (drug: string, pressed: boolean) => {
     confirmacionChecks[drug] = pressed;
-    form.confirmacion = Object.keys(confirmacionChecks).filter((key) => confirmacionChecks[key]);
+    updateConfirmacionForm();
+};
+
+// Seleccionar todas las drogas en screening
+const handleSelectAllScreening = () => {
+    const allChecked = Object.values(screeningChecks).every((val) => val === true);
+    Object.keys(screeningChecks).forEach((key) => {
+        screeningChecks[key] = !allChecked;
+    });
+    updateScreeningForm();
+};
+
+const allScreeningSelected = computed(() => {
+    return Object.values(screeningChecks).every((val) => val === true);
+});
+
+// Actualizar form con drogas del listado + otros
+const updateScreeningForm = () => {
+    const checkedDrugs = Object.keys(screeningChecks).filter((key) => screeningChecks[key]);
+    form.screening = [...checkedDrugs, ...screeningOtros.value];
+};
+
+const updateConfirmacionForm = () => {
+    const checkedDrugs = Object.keys(confirmacionChecks).filter((key) => confirmacionChecks[key]);
+    form.confirmacion = [...checkedDrugs, ...confirmacionOtros.value];
+};
+
+// Agregar droga personalizada
+const addScreeningOtro = () => {
+    const drug = screeningOtroInput.value.trim().toUpperCase();
+    if (drug && !screeningOtros.value.includes(drug) && !(drug in screeningChecks)) {
+        screeningOtros.value.push(drug);
+        updateScreeningForm();
+        screeningOtroInput.value = '';
+        screeningOtrosDialog.value = false;
+    }
+};
+
+const removeScreeningOtro = (drug: string) => {
+    screeningOtros.value = screeningOtros.value.filter((d) => d !== drug);
+    updateScreeningForm();
+};
+
+const addConfirmacionOtro = () => {
+    const drug = confirmacionOtroInput.value.trim().toUpperCase();
+    if (drug && !confirmacionOtros.value.includes(drug) && !(drug in confirmacionChecks)) {
+        confirmacionOtros.value.push(drug);
+        updateConfirmacionForm();
+        confirmacionOtroInput.value = '';
+        confirmacionOtrosDialog.value = false;
+    }
+};
+
+const removeConfirmacionOtro = (drug: string) => {
+    confirmacionOtros.value = confirmacionOtros.value.filter((d) => d !== drug);
+    updateConfirmacionForm();
 };
 
 // Sincronizar datos cuando se abre el dialog
@@ -99,23 +165,31 @@ watch(
             form.encargado_ingreso = sample.encargado_ingreso || '';
             form.fecha_ingreso = sample.fecha_ingreso || '';
 
-            // Parsear fecha si existe
+            // Parsear fecha y hora si existe
             if (sample.fecha_ingreso && sample.fecha_ingreso.trim().length > 0) {
                 try {
-                    // Extraer solo la parte de la fecha (YYYY-MM-DD) si viene con hora
-                    const fechaSolo = sample.fecha_ingreso.split(' ')[0];
+                    // Extraer fecha y hora (formato: YYYY-MM-DD HH:MM:SS)
+                    const [fechaSolo, horaSolo] = sample.fecha_ingreso.split(' ');
                     fechaIngresoDate.value = parseDate(fechaSolo);
+                    // Extraer solo HH:MM de HH:MM:SS
+                    if (horaSolo) {
+                        horaIngreso.value = horaSolo.substring(0, 5);
+                    }
                 } catch (e) {
                     fechaIngresoDate.value = undefined;
+                    horaIngreso.value = '';
                 }
             } else {
                 fechaIngresoDate.value = undefined;
+                horaIngreso.value = '';
             }
 
             // Parsear screening: convertir string separado por comas a array
-            // Resetear checkboxes
+            // Resetear checkboxes y otros
             Object.keys(screeningChecks).forEach((key) => (screeningChecks[key] = false));
             Object.keys(confirmacionChecks).forEach((key) => (confirmacionChecks[key] = false));
+            screeningOtros.value = [];
+            confirmacionOtros.value = [];
 
             if (sample.screening && typeof sample.screening === 'string' && sample.screening.trim().length > 0) {
                 const screeningArray = sample.screening
@@ -123,10 +197,12 @@ watch(
                     .map((s: string) => s.trim())
                     .filter((s: string) => s.length > 0);
                 form.screening = screeningArray;
-                // Marcar los checkboxes correspondientes
+                // Marcar los checkboxes correspondientes y agregar otros
                 screeningArray.forEach((drug) => {
                     if (drug in screeningChecks) {
                         screeningChecks[drug] = true;
+                    } else {
+                        screeningOtros.value.push(drug);
                     }
                 });
             } else {
@@ -140,10 +216,12 @@ watch(
                     .map((s: string) => s.trim())
                     .filter((s: string) => s.length > 0);
                 form.confirmacion = confirmacionArray;
-                // Marcar los checkboxes correspondientes
+                // Marcar los checkboxes correspondientes y agregar otros
                 confirmacionArray.forEach((drug) => {
                     if (drug in confirmacionChecks) {
                         confirmacionChecks[drug] = true;
+                    } else {
+                        confirmacionOtros.value.push(drug);
                     }
                 });
             } else {
@@ -152,9 +230,12 @@ watch(
         } else if (isOpen && !sample) {
             form.reset();
             fechaIngresoDate.value = undefined;
-            // Resetear checkboxes
+            horaIngreso.value = '';
+            // Resetear checkboxes y otros
             Object.keys(screeningChecks).forEach((key) => (screeningChecks[key] = false));
             Object.keys(confirmacionChecks).forEach((key) => (confirmacionChecks[key] = false));
+            screeningOtros.value = [];
+            confirmacionOtros.value = [];
         }
     },
     { immediate: true },
@@ -164,8 +245,23 @@ const updateFechaIngreso = (value: DateValue | undefined) => {
     if (value) {
         fechaIngresoDate.value = value;
         const date = value.toDate(getLocalTimeZone());
-        form.fecha_ingreso = date.toISOString().split('T')[0];
+        const fechaStr = date.toISOString().split('T')[0];
+        // Combinar fecha con hora si existe
+        if (horaIngreso.value) {
+            form.fecha_ingreso = `${fechaStr} ${horaIngreso.value}:00`;
+        } else {
+            form.fecha_ingreso = `${fechaStr} 00:00:00`;
+        }
         fechaIngresoOpen.value = false;
+    }
+};
+
+// Actualizar datetime cuando cambia la hora
+const updateHoraIngreso = () => {
+    if (fechaIngresoDate.value && horaIngreso.value) {
+        const date = fechaIngresoDate.value.toDate(getLocalTimeZone());
+        const fechaStr = date.toISOString().split('T')[0];
+        form.fecha_ingreso = `${fechaStr} ${horaIngreso.value}:00`;
     }
 };
 
@@ -173,9 +269,14 @@ const closeDialog = () => {
     emit('update:open', false);
     form.reset();
     fechaIngresoDate.value = undefined;
-    // Resetear todos los toggles
+    horaIngreso.value = '';
+    // Resetear todos los toggles y otros
     Object.keys(screeningChecks).forEach((key) => (screeningChecks[key] = false));
     Object.keys(confirmacionChecks).forEach((key) => (confirmacionChecks[key] = false));
+    screeningOtros.value = [];
+    confirmacionOtros.value = [];
+    screeningOtroInput.value = '';
+    confirmacionOtroInput.value = '';
 };
 
 const handleSubmit = () => {
@@ -186,9 +287,9 @@ const handleSubmit = () => {
 
     if (!props.sample) return;
 
-    // Sincronizar arrays desde los estados de los toggles
-    form.screening = Object.keys(screeningChecks).filter((key) => screeningChecks[key]);
-    form.confirmacion = Object.keys(confirmacionChecks).filter((key) => confirmacionChecks[key]);
+    // Sincronizar arrays desde los estados de los toggles + otros
+    updateScreeningForm();
+    updateConfirmacionForm();
 
     // Convertir arrays a strings separados por coma
     const screeningString = form.screening.join(',');
@@ -285,7 +386,12 @@ const dialogTitle = computed(() => {
 
                     <!-- Screening -->
                     <div class="space-y-3">
-                        <Label class="text-base">Screening</Label>
+                        <div class="flex items-center justify-between">
+                            <Label class="text-base">Screening</Label>
+                            <Button v-if="!isReadOnly" type="button" @click="handleSelectAllScreening" variant="ghost" size="sm" class="h-8 text-xs">
+                                {{ allScreeningSelected ? 'Deseleccionar Todos' : 'Seleccionar Todos' }}
+                            </Button>
+                        </div>
                         <div class="flex flex-wrap gap-2">
                             <Button
                                 v-for="drug in drugOptions"
@@ -297,6 +403,34 @@ const dialogTitle = computed(() => {
                                 size="sm"
                             >
                                 {{ drug.label }}
+                            </Button>
+                            <!-- Drogas personalizadas -->
+                            <div
+                                v-for="otro in screeningOtros"
+                                :key="'screening-otro-' + otro"
+                                class="inline-flex items-center gap-1 rounded-md border border-input bg-secondary px-3 py-1.5 text-sm font-medium"
+                            >
+                                <span>{{ otro }}</span>
+                                <button
+                                    v-if="!isReadOnly"
+                                    type="button"
+                                    @click="removeScreeningOtro(otro)"
+                                    class="ml-1 rounded-sm hover:bg-secondary-foreground/10"
+                                >
+                                    <X class="h-3 w-3" />
+                                </button>
+                            </div>
+                            <!-- Botón Agregar Otros -->
+                            <Button
+                                v-if="!isReadOnly"
+                                type="button"
+                                @click="screeningOtrosDialog = true"
+                                variant="outline"
+                                size="sm"
+                                class="gap-1 border-dashed"
+                            >
+                                <PlusCircle class="h-4 w-4" />
+                                Otros
                             </Button>
                         </div>
                     </div>
@@ -315,6 +449,34 @@ const dialogTitle = computed(() => {
                                 size="sm"
                             >
                                 {{ drug.label }}
+                            </Button>
+                            <!-- Drogas personalizadas -->
+                            <div
+                                v-for="otro in confirmacionOtros"
+                                :key="'confirmacion-otro-' + otro"
+                                class="inline-flex items-center gap-1 rounded-md border border-input bg-secondary px-3 py-1.5 text-sm font-medium"
+                            >
+                                <span>{{ otro }}</span>
+                                <button
+                                    v-if="!isReadOnly"
+                                    type="button"
+                                    @click="removeConfirmacionOtro(otro)"
+                                    class="ml-1 rounded-sm hover:bg-secondary-foreground/10"
+                                >
+                                    <X class="h-3 w-3" />
+                                </button>
+                            </div>
+                            <!-- Botón Agregar Otros -->
+                            <Button
+                                v-if="!isReadOnly"
+                                type="button"
+                                @click="confirmacionOtrosDialog = true"
+                                variant="outline"
+                                size="sm"
+                                class="gap-1 border-dashed"
+                            >
+                                <PlusCircle class="h-4 w-4" />
+                                Otros
                             </Button>
                         </div>
                     </div>
@@ -369,6 +531,10 @@ const dialogTitle = computed(() => {
                                 </PopoverContent>
                             </Popover>
                         </div>
+                        <div class="space-y-2">
+                            <Label for="hora_ingreso">Hora de Ingreso</Label>
+                            <Input id="hora_ingreso" v-model="horaIngreso" type="time" :disabled="isReadOnly" @change="updateHoraIngreso" />
+                        </div>
                     </div>
 
                     <div class="space-y-2">
@@ -393,6 +559,58 @@ const dialogTitle = computed(() => {
                     </Button>
                 </DialogFooter>
             </form>
+        </DialogContent>
+    </Dialog>
+
+    <!-- Dialog para agregar drogas personalizadas en Screening -->
+    <Dialog :open="screeningOtrosDialog" @update:open="(val: boolean) => (screeningOtrosDialog = val)">
+        <DialogContent class="sm:max-w-[425px]">
+            <DialogHeader>
+                <DialogTitle>Agregar Droga Personalizada - Screening</DialogTitle>
+                <DialogDescription>Ingresa el nombre de la droga en mayúsculas (ej: MDMA, LSD)</DialogDescription>
+            </DialogHeader>
+            <div class="space-y-4 py-4">
+                <div class="space-y-2">
+                    <Label for="screening-otro-input">Nombre de la Droga</Label>
+                    <Input
+                        id="screening-otro-input"
+                        v-model="screeningOtroInput"
+                        placeholder="Ej: MDMA"
+                        @keyup.enter="addScreeningOtro"
+                        class="uppercase"
+                    />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button type="button" variant="outline" @click="screeningOtrosDialog = false">Cancelar</Button>
+                <Button type="button" @click="addScreeningOtro" :disabled="!screeningOtroInput.trim()">Agregar</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+
+    <!-- Dialog para agregar drogas personalizadas en Confirmación -->
+    <Dialog :open="confirmacionOtrosDialog" @update:open="(val: boolean) => (confirmacionOtrosDialog = val)">
+        <DialogContent class="sm:max-w-[425px]">
+            <DialogHeader>
+                <DialogTitle>Agregar Droga Personalizada - Confirmación</DialogTitle>
+                <DialogDescription>Ingresa el nombre de la droga en mayúsculas (ej: MDMA, LSD)</DialogDescription>
+            </DialogHeader>
+            <div class="space-y-4 py-4">
+                <div class="space-y-2">
+                    <Label for="confirmacion-otro-input">Nombre de la Droga</Label>
+                    <Input
+                        id="confirmacion-otro-input"
+                        v-model="confirmacionOtroInput"
+                        placeholder="Ej: MDMA"
+                        @keyup.enter="addConfirmacionOtro"
+                        class="uppercase"
+                    />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button type="button" variant="outline" @click="confirmacionOtrosDialog = false">Cancelar</Button>
+                <Button type="button" @click="addConfirmacionOtro" :disabled="!confirmacionOtroInput.trim()">Agregar</Button>
+            </DialogFooter>
         </DialogContent>
     </Dialog>
 </template>
