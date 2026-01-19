@@ -81,6 +81,9 @@ const fechaIngresoDate = ref<DateValue | undefined>(undefined);
 const fechaIngresoOpen = ref(false);
 const horaIngreso = ref('');
 
+const fechaTomaMuestraDate = ref<DateValue | undefined>(undefined);
+const fechaTomaMuestraOpen = ref(false);
+
 // Checkboxes states
 const screeningChecks = reactive<Record<string, boolean>>({
     THC: false,
@@ -119,6 +122,7 @@ const form = useForm({
     cantidad_droga: null as number | null,
     encargado_ingreso: '',
     fecha_ingreso: '',
+    sample_taken_at: '',
 });
 
 // Funciones para manejar toggle manualmente
@@ -208,6 +212,7 @@ watch(
             form.cantidad_droga = sample.cantidad_droga || null;
             form.encargado_ingreso = sample.encargado_ingreso || '';
             form.fecha_ingreso = sample.fecha_ingreso || '';
+            form.sample_taken_at = sample.sample_taken_at || '';
 
             // Parsear fecha y hora si existe
             if (sample.fecha_ingreso && sample.fecha_ingreso.trim().length > 0) {
@@ -226,6 +231,18 @@ watch(
             } else {
                 fechaIngresoDate.value = undefined;
                 horaIngreso.value = '';
+            }
+
+            // Parsear fecha de toma de muestra si existe
+            if (sample.sample_taken_at && sample.sample_taken_at.trim().length > 0) {
+                try {
+                    const fechaSolo = sample.sample_taken_at.split(' ')[0];
+                    fechaTomaMuestraDate.value = parseDate(fechaSolo);
+                } catch (e) {
+                    fechaTomaMuestraDate.value = undefined;
+                }
+            } else {
+                fechaTomaMuestraDate.value = undefined;
             }
 
             // Parsear screening: convertir string separado por comas a array
@@ -275,6 +292,7 @@ watch(
             form.reset();
             fechaIngresoDate.value = undefined;
             horaIngreso.value = '';
+            fechaTomaMuestraDate.value = undefined;
             // Resetear checkboxes y otros
             Object.keys(screeningChecks).forEach((key) => (screeningChecks[key] = false));
             Object.keys(confirmacionChecks).forEach((key) => (confirmacionChecks[key] = false));
@@ -298,8 +316,22 @@ const updateFechaIngreso = (value: DateValue | undefined) => {
         } else {
             form.fecha_ingreso = `${fechaStr} 00:00:00`;
         }
-        fechaIngresoOpen.value = false;
+    } else {
+        form.fecha_ingreso = '';
     }
+    fechaIngresoOpen.value = false;
+};
+
+const updateFechaTomaMuestra = (value: DateValue | undefined) => {
+    if (value) {
+        fechaTomaMuestraDate.value = value;
+        const date = value.toDate(getLocalTimeZone());
+        const fechaStr = date.toISOString().split('T')[0];
+        form.sample_taken_at = `${fechaStr} 00:00:00`;
+    } else {
+        form.sample_taken_at = '';
+    }
+    fechaTomaMuestraOpen.value = false;
 };
 
 // Actualizar datetime cuando cambia la hora
@@ -315,6 +347,7 @@ const closeDialog = () => {
     emit('update:open', false);
     form.reset();
     fechaIngresoDate.value = undefined;
+    fechaTomaMuestraDate.value = undefined;
     horaIngreso.value = '';
     // Resetear todos los toggles y otros
     Object.keys(screeningChecks).forEach((key) => (screeningChecks[key] = false));
@@ -354,6 +387,7 @@ const handleSubmit = () => {
         cantidad_droga: form.cantidad_droga,
         encargado_ingreso: form.encargado_ingreso,
         fecha_ingreso: form.fecha_ingreso,
+        sample_taken_at: form.sample_taken_at,
     };
 
     // El registro en characteristic_samples ya existe, solo actualizar
@@ -699,6 +733,31 @@ const dialogTitle = computed(() => {
                                 :placeholder="isReadOnly ? '' : 'Nombre del encargado'"
                             />
                         </div>
+
+                        <div class="space-y-2">
+                            <Label for="fecha_toma_muestra" class="px-1">Fecha de Toma de Muestra</Label>
+                            <Popover v-model:open="fechaTomaMuestraOpen">
+                                <PopoverTrigger as-child>
+                                    <Button
+                                        id="fecha_toma_muestra"
+                                        variant="outline"
+                                        :class="['w-full justify-start text-left font-normal', !fechaTomaMuestraDate && 'text-muted-foreground']"
+                                        :disabled="isReadOnly"
+                                    >
+                                        <CalendarIcon class="mr-2 h-4 w-4" />
+                                        {{
+                                            fechaTomaMuestraDate
+                                                ? fechaTomaMuestraDate.toDate(getLocalTimeZone()).toLocaleDateString('es-CL')
+                                                : 'Selecciona fecha…'
+                                        }}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent class="w-auto overflow-hidden p-0" align="start">
+                                    <Calendar :model-value="fechaTomaMuestraDate" @update:model-value="updateFechaTomaMuestra" />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+
                         <div class="space-y-2">
                             <Label for="fecha_ingreso" class="px-1">Fecha de Ingreso</Label>
                             <Popover v-model:open="fechaIngresoOpen">

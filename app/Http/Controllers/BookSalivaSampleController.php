@@ -27,6 +27,7 @@ class BookSalivaSampleController extends Controller
                 'samples.status as status_id',
                 'samples.received_at',
                 'samples.analyzed_at',
+                'samples.sample_taken_at',
                 'characteristic_samples.*',
                 'companies.name as company_name',
             ])
@@ -86,6 +87,7 @@ class BookSalivaSampleController extends Controller
             'cantidad_droga' => ['nullable', 'integer'],
             'encargado_ingreso' => ['nullable', 'string', 'max:255'],
             'fecha_ingreso' => ['nullable', 'date'],
+            'sample_taken_at' => ['nullable', 'date'],
         ]);
 
         $characteristic = CharacteristicSample::findOrFail($id);
@@ -100,6 +102,11 @@ class BookSalivaSampleController extends Controller
 
         if (isset($validated['fecha_ingreso'])) {
             $sampleData['analyzed_at'] = $validated['fecha_ingreso'];
+        }
+
+        if (isset($validated['sample_taken_at'])) {
+            $sampleData['sample_taken_at'] = $validated['sample_taken_at'];
+            unset($validated['sample_taken_at']);
         }
 
         // Actualizar tabla samples
@@ -177,6 +184,7 @@ class BookSalivaSampleController extends Controller
                 'companies.name as company_name',
                 'samples.received_at',
                 'samples.analyzed_at',
+                'samples.sample_taken_at',
                 'characteristic_samples.ph',
                 'characteristic_samples.densidad',
                 'characteristic_samples.volumen',
@@ -204,6 +212,7 @@ class BookSalivaSampleController extends Controller
             'Empresa',
             'Fecha Recepción',
             'Fecha Análisis',
+            'Fecha de Toma de Muestra',
             'pH',
             'Densidad',
             'Volumen',
@@ -227,7 +236,7 @@ class BookSalivaSampleController extends Controller
                 'startColor' => ['rgb' => 'E2E8F0']
             ]
         ];
-        $sheet->getStyle('A1:Q1')->applyFromArray($headerStyle);
+        $sheet->getStyle('A1:R1')->applyFromArray($headerStyle);
 
         // Data rows
         $row = 2;
@@ -239,6 +248,7 @@ class BookSalivaSampleController extends Controller
                 $sample->company_name,
                 $sample->received_at ?: '-',
                 $sample->analyzed_at ?: '-',
+                $sample->sample_taken_at ?: '-',
                 $sample->ph ?: '-',
                 $sample->densidad ?: '-',
                 $sample->volumen ?: '-',
@@ -255,7 +265,7 @@ class BookSalivaSampleController extends Controller
         }
 
         // Auto-ajustar columnas
-        foreach (range('A', 'Q') as $col) {
+        foreach (range('A', 'R') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 

@@ -27,6 +27,7 @@ class BookHairSampleController extends Controller
                 'samples.status as status_id',
                 'samples.received_at',
                 'samples.analyzed_at',
+                'samples.sample_taken_at',
                 'characteristic_samples.*',
                 'companies.name as company_name',
             ])
@@ -89,6 +90,7 @@ class BookHairSampleController extends Controller
             'cantidad_droga' => ['nullable', 'integer'],
             'encargado_ingreso' => ['nullable', 'string', 'max:255'],
             'fecha_ingreso' => ['nullable', 'date'],
+            'sample_taken_at' => ['nullable', 'date'],
         ]);
 
         $characteristic = CharacteristicSample::findOrFail($id);
@@ -103,6 +105,11 @@ class BookHairSampleController extends Controller
 
         if (isset($validated['fecha_ingreso'])) {
             $sampleData['analyzed_at'] = $validated['fecha_ingreso'];
+        }
+
+        if (isset($validated['sample_taken_at'])) {
+            $sampleData['sample_taken_at'] = $validated['sample_taken_at'];
+            unset($validated['sample_taken_at']);
         }
 
         // Actualizar tabla samples
@@ -182,6 +189,7 @@ class BookHairSampleController extends Controller
                 'companies.name as company_name',
                 'samples.received_at',
                 'samples.analyzed_at',
+                'samples.sample_taken_at',
                 'characteristic_samples.largo',
                 'characteristic_samples.color',
                 'characteristic_samples.tipo_muestra',
@@ -211,6 +219,7 @@ class BookHairSampleController extends Controller
             'Empresa',
             'Fecha Recepción',
             'Fecha Análisis',
+            'Fecha de Toma de Muestra',
             'Largo (cm)',
             'Color',
             'Tipo de Muestra',
@@ -236,7 +245,7 @@ class BookHairSampleController extends Controller
                 'startColor' => ['rgb' => 'E2E8F0']
             ]
         ];
-        $sheet->getStyle('A1:S1')->applyFromArray($headerStyle);
+        $sheet->getStyle('A1:T1')->applyFromArray($headerStyle);
 
         // Data rows
         $row = 2;
@@ -248,6 +257,7 @@ class BookHairSampleController extends Controller
                 $sample->company_name,
                 $sample->received_at ?: '-',
                 $sample->analyzed_at ?: '-',
+                $sample->sample_taken_at ?: '-',
                 $sample->largo ?: '-',
                 $sample->color ?: '-',
                 $sample->tipo_muestra ?: '-',
@@ -266,7 +276,7 @@ class BookHairSampleController extends Controller
         }
 
         // Auto-ajustar columnas
-        foreach (range('A', 'S') as $col) {
+        foreach (range('A', 'T') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 

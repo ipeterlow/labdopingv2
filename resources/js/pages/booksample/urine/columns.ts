@@ -23,6 +23,7 @@ export interface UrineSample {
     cantidad_droga?: number;
     encargado_ingreso?: string;
     fecha_ingreso?: string;
+    sample_taken_at?: string;
     sample_id: number;
     result_gcms?: string;
     result_cobas?: string;
