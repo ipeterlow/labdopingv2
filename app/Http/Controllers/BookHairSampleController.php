@@ -208,7 +208,7 @@ class BookHairSampleController extends Controller
             ->get();
 
         // Crear spreadsheet
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
 
         // Headers
@@ -242,8 +242,8 @@ class BookHairSampleController extends Controller
             'font' => ['bold' => true],
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'E2E8F0']
-            ]
+                'startColor' => ['rgb' => 'E2E8F0'],
+            ],
         ];
         $sheet->getStyle('A1:T1')->applyFromArray($headerStyle);
 
@@ -271,7 +271,7 @@ class BookHairSampleController extends Controller
                 $sample->result_cobas ?: '-',
                 $sample->result_elisa ?: '-',
                 $sample->result_inmuno ?: '-',
-            ], null, 'A' . $row);
+            ], null, 'A'.$row);
             $row++;
         }
 
@@ -281,16 +281,15 @@ class BookHairSampleController extends Controller
         }
 
         // Generar archivo
-        $filename = 'muestras_pelo_' . date('Y-m-d_His') . '.xlsx';
+        $filename = 'muestras_pelo_'.date('Y-m-d_His').'.xlsx';
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
 
         // Enviar headers
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Content-Disposition: attachment;filename="'.$filename.'"');
         header('Cache-Control: max-age=0');
 
         $writer->save('php://output');
         exit;
     }
 }
-
