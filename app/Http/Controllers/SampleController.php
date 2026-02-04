@@ -56,7 +56,11 @@ class SampleController extends Controller
 
         // Filtrar por team si corresponde
         if ($currentTeamId !== null && $currentTeamId !== '') {
-            $query->where('samples.company_id', $currentTeamId);
+            if ((string) $currentTeamId === '9999') {
+                $query->where('companies.name', 'like', 'Mutual%');
+            } else {
+                $query->where('samples.company_id', $currentTeamId);
+            }
         }
 
         $samples = $query->get();
