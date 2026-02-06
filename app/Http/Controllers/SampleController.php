@@ -12,10 +12,13 @@ class SampleController extends Controller
 {
     /**
      * Display a listing of the resource.
+     * Optimizado con paginación del lado del servidor
      */
-    public function index()
+    public function index(Request $request)
     {
         $currentTeamId = auth()->user()->current_team_id;
+        $perPage = $request->input('per_page', 50);
+        $search = $request->input('search', '');
 
         $query = Sample::query()
             ->join('companies', 'samples.company_id', '=', 'companies.id')
@@ -52,7 +55,7 @@ class SampleController extends Controller
                     )
                 END as tiempo_respuesta
             ')
-            ->orderBy('samples.id', 'desc');
+            ->whereNull('samples.deleted_at');
 
         // Filtrar por team si corresponde
         if ($currentTeamId !== null && $currentTeamId !== '') {
@@ -63,10 +66,34 @@ class SampleController extends Controller
             }
         }
 
-        $samples = $query->get();
+        // Búsqueda global optimizada
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('samples.external_id', 'like', "%{$search}%")
+                  ->orWhere('samples.internal_id', 'like', "%{$search}%")
+                  ->orWhere('companies.name', 'like', "%{$search}%")
+                  ->orWhere('sample_status.name', 'like', "%{$search}%");
+            });
+        }
+
+        $samples = $query->orderBy('samples.id', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
 
         return Inertia::render('sample/Index', [
-            'sample' => $samples,
+            'sample' => $samples->items(),
+            'pagination' => [
+                'current_page' => $samples->currentPage(),
+                'last_page' => $samples->lastPage(),
+                'per_page' => $samples->perPage(),
+                'total' => $samples->total(),
+                'from' => $samples->firstItem(),
+                'to' => $samples->lastItem(),
+            ],
+            'filters' => [
+                'search' => $search,
+                'per_page' => $perPage,
+            ],
         ]);
     }
 
@@ -88,26 +115,25 @@ class SampleController extends Controller
 
     /**
      * Display the specified resource.
+     * Optimizado: Una sola query para sample y documentos agrupados
      */
     public function show(string $id)
     {
-
-        $sample = Sample::join('companies', 'samples.company_id', '=', 'companies.id')
+        $sample = Sample::query()
+            ->join('companies', 'samples.company_id', '=', 'companies.id')
             ->join('sample_status', 'samples.status', '=', 'sample_status.id')
             ->select('samples.*', 'companies.name as company_name', 'sample_status.name as status_name')
             ->where('samples.id', $id)
             ->firstOrFail();
 
-        $documents = Document::where('sample_id', $sample->id)->get();
+        // Una sola query para obtener todos los documentos y filtrarlos en PHP
+        $documents = Document::where('sample_id', $sample->id)
+            ->select('id', 'sample_id', 'type_document', 'document_archive', 'created_at')
+            ->get();
 
-        // Buscar documentos específicos
-        $informeDoc = Document::where('sample_id', $sample->id)
-            ->where('type_document', 'informe')
-            ->first();
-
-        $cadenaDoc = Document::where('sample_id', $sample->id)
-            ->where('type_document', 'cadena_custodia')
-            ->first();
+        // Filtrar en memoria (más rápido que 3 queries)
+        $informeDoc = $documents->firstWhere('type_document', 'informe');
+        $cadenaDoc = $documents->firstWhere('type_document', 'cadena_custodia');
 
         return Inertia::render('sample/Show', [
             'sample' => $sample,

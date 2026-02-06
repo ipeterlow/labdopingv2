@@ -2,26 +2,34 @@
 import { buttonVariants } from '@/components/ui/button';
 import DataTable from '@/components/ui/table/DataTable.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { PageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, provide, ref, watch } from 'vue';
+import { computed, provide, ref } from 'vue';
 import { UrineSample, urineSampleColumns } from './columns';
 import ExportDialog from './ExportDialog.vue';
 import ResultsDialog from './ResultsDialog.vue';
 import UrineSampleDialog from './UrineSampleDialog.vue';
 
-const page = usePage<PageProps>();
-const rawData = computed(() => (page.props.urineSamples as unknown as UrineSample[]) ?? []);
-const data = ref<UrineSample[]>([...rawData.value]);
+// Tipos para paginación del servidor
+interface ServerPagination {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+}
 
-// Sincronizar data cuando rawData cambie
-watch(
-    rawData,
-    (newData) => {
-        data.value = [...newData];
-    },
-    { deep: true },
-);
+interface ServerFilters {
+    search: string;
+    per_page: number;
+}
+
+const page = usePage();
+
+// Datos reactivos desde el servidor
+const data = computed(() => (page.props.urineSamples as UrineSample[]) ?? []);
+const pagination = computed(() => page.props.pagination as ServerPagination | undefined);
+const filters = computed(() => page.props.filters as ServerFilters | undefined);
 
 // Estado del dialog
 const dialogOpen = ref(false);
@@ -54,8 +62,8 @@ const handleResults = (sample: UrineSample) => {
 };
 
 const handleSuccess = () => {
-    // Recargar la página para obtener datos actualizados
-    router.reload({ only: ['urineSamples'] });
+    // Recargar solo los datos necesarios
+    router.reload({ only: ['urineSamples', 'pagination'] });
 };
 
 // Proporcionar handlers globalmente a través de provide/inject
@@ -79,11 +87,15 @@ provide('handleResults', handleResults);
 
             <!-- Dialog para resultados -->
             <ResultsDialog v-model:open="resultsDialogOpen" :sample="selectedSampleForResults" @success="handleSuccess" />
+            
             <DataTable
                 :columns="urineSampleColumns"
                 :data="data"
                 search-placeholder="Buscar por ID externo, interno, empresa..."
                 :searchable-columns="['external_id', 'internal_id', 'company_name', 'ph', 'densidad']"
+                :server-mode="true"
+                :server-pagination="pagination"
+                :server-filters="filters"
             />
 
             <!-- Dialog para editar/ver -->

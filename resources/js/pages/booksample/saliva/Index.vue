@@ -2,26 +2,34 @@
 import { buttonVariants } from '@/components/ui/button';
 import DataTable from '@/components/ui/table/DataTable.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { PageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, provide, ref, watch } from 'vue';
+import { computed, provide, ref } from 'vue';
 import { SalivaSample, salivaSampleColumns } from './columns';
 import ExportDialog from './ExportDialog.vue';
 import ResultsDialog from './ResultsDialog.vue';
 import SalivaSampleDialog from './SalivaSampleDialog.vue';
 
-const page = usePage<PageProps>();
-const rawData = computed(() => (page.props.salivaSamples as unknown as SalivaSample[]) ?? []);
-const data = ref<SalivaSample[]>([...rawData.value]);
+// Tipos para paginación del servidor
+interface ServerPagination {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+}
 
-// Sincronizar data cuando rawData cambie
-watch(
-    rawData,
-    (newData) => {
-        data.value = [...newData];
-    },
-    { deep: true },
-);
+interface ServerFilters {
+    search: string;
+    per_page: number;
+}
+
+const page = usePage();
+
+// Datos reactivos desde el servidor
+const data = computed(() => (page.props.salivaSamples as SalivaSample[]) ?? []);
+const pagination = computed(() => page.props.pagination as ServerPagination | undefined);
+const filters = computed(() => page.props.filters as ServerFilters | undefined);
 
 // Estado del dialog
 const dialogOpen = ref(false);
@@ -54,8 +62,8 @@ const handleResults = (sample: SalivaSample) => {
 };
 
 const handleSuccess = () => {
-    // Recargar la página para obtener datos actualizados
-    router.reload({ only: ['salivaSamples'] });
+    // Recargar solo los datos necesarios
+    router.reload({ only: ['salivaSamples', 'pagination'] });
 };
 
 // Proporcionar handlers globalmente a través de provide/inject
@@ -82,6 +90,9 @@ provide('handleResults', handleResults);
                 :data="data"
                 search-placeholder="Buscar por ID externo, interno, empresa..."
                 :searchable-columns="['external_id', 'internal_id', 'company_name', 'ph', 'densidad', 'volumen']"
+                :server-mode="true"
+                :server-pagination="pagination"
+                :server-filters="filters"
             />
 
             <!-- Dialog para editar/ver -->

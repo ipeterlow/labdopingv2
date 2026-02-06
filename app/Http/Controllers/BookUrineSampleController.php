@@ -11,15 +11,34 @@ class BookUrineSampleController extends Controller
 {
     /**
      * Display a listing of the resource.
+     * Optimizado con paginación del lado del servidor
      */
-    public function index()
+    public function index(Request $request)
     {
-        $urineSamples = CharacteristicSample::query()
+        $perPage = $request->input('per_page', 50);
+        $search = $request->input('search', '');
+
+        $query = CharacteristicSample::query()
             ->join('samples', 'characteristic_samples.sample_id', '=', 'samples.id')
             ->join('companies', 'samples.company_id', '=', 'companies.id')
             ->where('samples.type', '=', 'orina')
+            ->whereNull('samples.deleted_at')
+            ->whereNull('characteristic_samples.deleted_at')
             ->select([
                 'characteristic_samples.id_characteristic_samples',
+                'characteristic_samples.sample_id',
+                'characteristic_samples.ph',
+                'characteristic_samples.densidad',
+                'characteristic_samples.volumen',
+                'characteristic_samples.screening',
+                'characteristic_samples.confirmacion',
+                'characteristic_samples.observaciones',
+                'characteristic_samples.cantidad_droga',
+                'characteristic_samples.encargado_ingreso',
+                'characteristic_samples.fecha_ingreso',
+                'characteristic_samples.result_gcms',
+                'characteristic_samples.result_cobas',
+                'samples.id as sample_id_ref',
                 'samples.external_id',
                 'samples.internal_id',
                 'samples.type',
@@ -28,14 +47,38 @@ class BookUrineSampleController extends Controller
                 'samples.received_at',
                 'samples.analyzed_at',
                 'samples.sample_taken_at',
-                'characteristic_samples.*',
                 'companies.name as company_name',
-            ])
-            ->orderBy('characteristic_samples.id_characteristic_samples', 'desc')
-            ->get();
+            ]);
+
+        // Búsqueda global optimizada
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('samples.external_id', 'like', "%{$search}%")
+                  ->orWhere('samples.internal_id', 'like', "%{$search}%")
+                  ->orWhere('companies.name', 'like', "%{$search}%")
+                  ->orWhere('characteristic_samples.ph', 'like', "%{$search}%")
+                  ->orWhere('characteristic_samples.densidad', 'like', "%{$search}%");
+            });
+        }
+
+        $urineSamples = $query->orderBy('characteristic_samples.id_characteristic_samples', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
 
         return Inertia::render('booksample/urine/Index', [
-            'urineSamples' => $urineSamples,
+            'urineSamples' => $urineSamples->items(),
+            'pagination' => [
+                'current_page' => $urineSamples->currentPage(),
+                'last_page' => $urineSamples->lastPage(),
+                'per_page' => $urineSamples->perPage(),
+                'total' => $urineSamples->total(),
+                'from' => $urineSamples->firstItem(),
+                'to' => $urineSamples->lastItem(),
+            ],
+            'filters' => [
+                'search' => $search,
+                'per_page' => $perPage,
+            ],
         ]);
     }
 
@@ -76,6 +119,7 @@ class BookUrineSampleController extends Controller
 
     /**
      * Update the specified resource in storage.
+     * Optimizado: Transacción única para ambas tablas
      */
     public function update(Request $request, string $id)
     {
@@ -93,36 +137,35 @@ class BookUrineSampleController extends Controller
             'sample_taken_at' => ['nullable', 'date'],
         ]);
 
-        \Log::info('📥 Datos validados recibidos:', $validated);
-        \Log::info('📥 Screening: '.($validated['screening'] ?? 'null'));
-        \Log::info('📥 Confirmacion: '.($validated['confirmacion'] ?? 'null'));
+        // Usar transacción para ambas actualizaciones
+        \DB::transaction(function () use ($validated, $id) {
+            $characteristic = CharacteristicSample::findOrFail($id);
 
-        $characteristic = CharacteristicSample::findOrFail($id);
+            // Preparar datos para tabla samples
+            $sampleData = [];
+            $characteristicData = $validated;
 
-        // Preparar datos para actualizar en la tabla samples
-        $sampleData = [];
+            if (isset($validated['internal_id'])) {
+                $sampleData['internal_id'] = $validated['internal_id'];
+                unset($characteristicData['internal_id']);
+            }
 
-        if (isset($validated['internal_id'])) {
-            $sampleData['internal_id'] = $validated['internal_id'];
-            unset($validated['internal_id']);
-        }
+            if (isset($validated['fecha_ingreso'])) {
+                $sampleData['analyzed_at'] = $validated['fecha_ingreso'];
+            }
 
-        if (isset($validated['fecha_ingreso'])) {
-            $sampleData['analyzed_at'] = $validated['fecha_ingreso'];
-        }
+            if (isset($validated['sample_taken_at'])) {
+                $sampleData['sample_taken_at'] = $validated['sample_taken_at'];
+                unset($characteristicData['sample_taken_at']);
+            }
 
-        if (isset($validated['sample_taken_at'])) {
-            $sampleData['sample_taken_at'] = $validated['sample_taken_at'];
-            unset($validated['sample_taken_at']);
-        }
+            // Actualizar ambas tablas en una transacción
+            if (!empty($sampleData)) {
+                Sample::where('id', $characteristic->sample_id)->update($sampleData);
+            }
 
-        // Actualizar tabla samples
-        if (! empty($sampleData)) {
-            $characteristic->sample()->update($sampleData);
-        }
-
-        // Actualizar características
-        $characteristic->update($validated);
+            $characteristic->update($characteristicData);
+        });
 
         return redirect()->route('bookurinesample.index')
             ->with('success', 'Características de orina actualizadas correctamente.');
