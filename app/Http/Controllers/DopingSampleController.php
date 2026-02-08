@@ -353,7 +353,7 @@ class DopingSampleController extends Controller
             }
         });
 
-        return to_route('dopingsample.edit', $validated['samples'][0]['id']);
+        return to_route('dopingsample.index');
     }
 
     /**

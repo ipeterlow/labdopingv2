@@ -2,6 +2,29 @@ import ActionCell from '@/components/ActionCell.vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
 
+function formatDate(value: unknown): string {
+    if (!value) return '';
+    const d = new Date(String(value));
+    if (isNaN(d.getTime())) return String(value);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+function formatDateTime(value: unknown): string {
+    if (!value) return '';
+    const d = new Date(String(value));
+    if (isNaN(d.getTime())) return String(value);
+    const yyyy = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mi = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+    return `${yyyy}-${mo}-${dd} ${hh}:${mi}:${ss}`;
+}
+
 export interface Sample {
     id: number;
     external_id: string;
@@ -32,7 +55,7 @@ export const sampleColumns: ColumnDef<Sample>[] = [
     },
     {
         accessorKey: 'category',
-        header: 'Categoría de Muestra',
+        header: 'Categoría Muestra',
         cell: (info) => info.getValue(),
     },
     {
@@ -47,30 +70,30 @@ export const sampleColumns: ColumnDef<Sample>[] = [
     },
     {
         accessorKey: 'type',
-        header: 'Tipo de Muestra',
+        header: 'Tipo Muestra',
         cell: (info) => info.getValue(),
     },
 
     {
         accessorKey: 'sent_at',
-        header: 'Fecha de Envío',
-        cell: (info) => info.getValue(),
+        header: 'Fecha Envío',
+        cell: (info) => formatDate(info.getValue()),
     },
     {
         accessorKey: 'received_at',
-        header: 'Fecha de Recepción',
-        cell: (info) => info.getValue(),
+        header: 'Fecha Recepción',
+        cell: (info) => formatDateTime(info.getValue()),
     },
 
     {
         accessorKey: 'sample_taken_at',
-        header: 'Fecha de Toma de Muestra',
-        cell: (info) => info.getValue(),
+        header: 'Fecha Toma Muestra',
+        cell: (info) => formatDate(info.getValue()),
     },
     {
         accessorKey: 'analyzed_at',
-        header: 'Fecha de Análisis',
-        cell: (info) => info.getValue(),
+        header: 'Fecha Análisis',
+        cell: (info) => formatDate(info.getValue()),
     },
     {
         accessorKey: 'tiempo_recepcion',
@@ -82,7 +105,7 @@ export const sampleColumns: ColumnDef<Sample>[] = [
     },
     {
         accessorKey: 'tiempo_respuesta',
-        header: 'Tiempo de Respuesta',
+        header: 'Tiempo Respuesta',
         cell: (info) => {
             const value = info.getValue() as number | null;
             return value !== null ? `${value} días` : '—';
