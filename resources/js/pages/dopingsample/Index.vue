@@ -3,14 +3,32 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { buttonVariants } from '@/components/ui/button';
 import DataTable from '@/components/ui/table/DataTable.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { PageProps } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Check } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { Sample, sampleColumns } from './columns';
 
-const page = usePage<PageProps>();
-const data = ref<Sample[]>([...((page.props.sample as unknown as Sample[]) ?? [])]);
+// Tipos para paginación del servidor
+interface ServerPagination {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+}
+
+interface ServerFilters {
+    search: string;
+    per_page: number;
+}
+
+const page = usePage();
+
+// Datos reactivos desde el servidor
+const data = computed(() => (page.props.sample as Sample[]) ?? []);
+const pagination = computed(() => page.props.pagination as ServerPagination | undefined);
+const filters = computed(() => page.props.filters as ServerFilters | undefined);
 
 // Sistema de alertas para mensajes flash
 const showAlert = ref(false);
@@ -18,7 +36,7 @@ const alertMessage = ref('');
 
 // Detectar mensaje flash de success
 watch(
-    () => page.props.flash?.success,
+    () => (page.props as any).flash?.success,
     (message) => {
         if (message) {
             alertMessage.value = message as string;
@@ -64,6 +82,9 @@ watch(
                 class="mt-4"
                 search-placeholder="Buscar por ID externo, interno, empresa, estado o fecha de recepción..."
                 :searchable-columns="['external_id', 'internal_id', 'company_name', 'status_name', 'received_at']"
+                :server-mode="true"
+                :server-pagination="pagination"
+                :server-filters="filters"
             />
         </div>
     </AppLayout>
