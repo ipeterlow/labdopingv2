@@ -87,7 +87,7 @@ provide('handleResults', handleResults);
 
             <!-- Dialog para resultados -->
             <ResultsDialog v-model:open="resultsDialogOpen" :sample="selectedSampleForResults" @success="handleSuccess" />
-            
+
             <DataTable
                 :columns="urineSampleColumns"
                 :data="data"

@@ -70,9 +70,9 @@ class SampleController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('samples.external_id', 'like', "%{$search}%")
-                  ->orWhere('samples.internal_id', 'like', "%{$search}%")
-                  ->orWhere('companies.name', 'like', "%{$search}%")
-                  ->orWhere('sample_status.name', 'like', "%{$search}%");
+                    ->orWhere('samples.internal_id', 'like', "%{$search}%")
+                    ->orWhere('companies.name', 'like', "%{$search}%")
+                    ->orWhere('sample_status.name', 'like', "%{$search}%");
             });
         }
 

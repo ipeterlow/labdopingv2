@@ -5,7 +5,7 @@ import DataTable from '@/components/ui/table/DataTable.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Check } from 'lucide-vue-next';
-import { ref, watch, computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Sample, sampleColumns } from './columns';
 
 // Tipos para paginación del servidor

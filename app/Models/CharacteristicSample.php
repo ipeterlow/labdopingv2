@@ -66,6 +66,7 @@ class CharacteristicSample extends Model
         'tipo_muestra',
         'result_elisa',
         'result_inmuno',
+        'tipo_analisis',
     ];
 
     public function sample()

@@ -107,7 +107,7 @@ class Sample extends Model
 
         return $query->where(function ($q) use ($search) {
             $q->where('external_id', 'like', "%{$search}%")
-              ->orWhere('internal_id', 'like', "%{$search}%");
+                ->orWhere('internal_id', 'like', "%{$search}%");
         });
     }
 }

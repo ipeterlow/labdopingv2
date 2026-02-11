@@ -27,6 +27,9 @@ export interface UrineSample {
     sample_id: number;
     result_gcms?: string;
     result_cobas?: string;
+    result_elisa?: string;
+    result_inmuno?: string;
+    tipo_analisis?: string;
 }
 
 export const urineSampleColumns: ColumnDef<UrineSample>[] = [

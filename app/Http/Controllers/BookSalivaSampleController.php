@@ -38,6 +38,9 @@ class BookSalivaSampleController extends Controller
                 'characteristic_samples.fecha_ingreso',
                 'characteristic_samples.result_gcms',
                 'characteristic_samples.result_cobas',
+                'characteristic_samples.result_elisa',
+                'characteristic_samples.result_inmuno',
+                'characteristic_samples.tipo_analisis',
                 'samples.id as sample_id_ref',
                 'samples.external_id',
                 'samples.internal_id',
@@ -54,10 +57,10 @@ class BookSalivaSampleController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('samples.external_id', 'like', "%{$search}%")
-                  ->orWhere('samples.internal_id', 'like', "%{$search}%")
-                  ->orWhere('companies.name', 'like', "%{$search}%")
-                  ->orWhere('characteristic_samples.ph', 'like', "%{$search}%")
-                  ->orWhere('characteristic_samples.densidad', 'like', "%{$search}%");
+                    ->orWhere('samples.internal_id', 'like', "%{$search}%")
+                    ->orWhere('companies.name', 'like', "%{$search}%")
+                    ->orWhere('characteristic_samples.ph', 'like', "%{$search}%")
+                    ->orWhere('characteristic_samples.densidad', 'like', "%{$search}%");
             });
         }
 
@@ -127,6 +130,7 @@ class BookSalivaSampleController extends Controller
             'volumen' => ['nullable', 'string', 'max:50'],
             'screening' => ['nullable', 'string', 'max:255'],
             'confirmacion' => ['nullable', 'string', 'max:255'],
+            'tipo_analisis' => ['nullable', 'string', 'max:255'],
             'observaciones' => ['nullable', 'string', 'max:2000'],
             'cantidad_droga' => ['nullable', 'integer'],
             'encargado_ingreso' => ['nullable', 'string', 'max:255'],
@@ -157,7 +161,7 @@ class BookSalivaSampleController extends Controller
             }
 
             // Actualizar ambas tablas en una transacción
-            if (!empty($sampleData)) {
+            if (! empty($sampleData)) {
                 Sample::where('id', $characteristic->sample_id)->update($sampleData);
             }
 
@@ -200,6 +204,8 @@ class BookSalivaSampleController extends Controller
         $validated = $request->validate([
             'result_gcms' => ['nullable', 'string'],
             'result_cobas' => ['nullable', 'string'],
+            'result_elisa' => ['nullable', 'string'],
+            'result_inmuno' => ['nullable', 'string'],
         ]);
 
         $characteristic = CharacteristicSample::findOrFail($id);

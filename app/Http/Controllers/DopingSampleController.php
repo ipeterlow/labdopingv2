@@ -48,9 +48,9 @@ class DopingSampleController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('samples.external_id', 'like', "%{$search}%")
-                  ->orWhere('samples.internal_id', 'like', "%{$search}%")
-                  ->orWhere('companies.name', 'like', "%{$search}%")
-                  ->orWhere('sample_status.name', 'like', "%{$search}%");
+                    ->orWhere('samples.internal_id', 'like', "%{$search}%")
+                    ->orWhere('companies.name', 'like', "%{$search}%")
+                    ->orWhere('sample_status.name', 'like', "%{$search}%");
             });
         }
 
@@ -132,13 +132,13 @@ class DopingSampleController extends Controller
                 ->whereNotNull('reception_id')
                 ->lockForUpdate()
                 ->max(DB::raw('CAST(reception_id AS UNSIGNED)'));
-            
+
             $keygen = $maxReceptionId ? (int) $maxReceptionId + 1 : 1;
             $now = now();
-            
+
             // Preparar todos los registros para inserción masiva
             $samplesToInsert = [];
-            
+
             foreach ($data['samples'] as $s) {
                 $baseRecord = [
                     'company_id' => $data['company_id'],
@@ -215,8 +215,8 @@ class DopingSampleController extends Controller
                 ->get();
 
             // Usar la primera con received_at como principal, o la primera del grupo
-            $mainSampleData = $sampleGroup->firstWhere('received_at', '!=', null) 
-                ?? $sampleGroup->first() 
+            $mainSampleData = $sampleGroup->firstWhere('received_at', '!=', null)
+                ?? $sampleGroup->first()
                 ?? $clickedSample;
         } else {
             $sampleGroup = collect([
@@ -240,10 +240,10 @@ class DopingSampleController extends Controller
         $receivedAtHour = $mainSampleData->received_at_hour ?? null;
 
         if ($mainSampleData->received_at) {
-            $receivedAt = is_string($mainSampleData->received_at) 
-                ? Carbon::parse($mainSampleData->received_at) 
+            $receivedAt = is_string($mainSampleData->received_at)
+                ? Carbon::parse($mainSampleData->received_at)
                 : $mainSampleData->received_at;
-            
+
             $receivedAtDate = $receivedAt->format('Y-m-d');
             $receivedAtHour = $receivedAtHour ?? $receivedAt->format('H:i');
         }
@@ -262,11 +262,11 @@ class DopingSampleController extends Controller
             'received_at' => $receivedAtDate,
             'received_at_hour' => $receivedAtHour,
             'description' => $mainSampleData->description,
-            'shipping_type' => in_array($mainSampleData->shipping_type, $standardShipping) 
-                ? $mainSampleData->shipping_type 
+            'shipping_type' => in_array($mainSampleData->shipping_type, $standardShipping)
+                ? $mainSampleData->shipping_type
                 : 'otros',
-            'custom_shipping_type' => in_array($mainSampleData->shipping_type, $standardShipping) 
-                ? '' 
+            'custom_shipping_type' => in_array($mainSampleData->shipping_type, $standardShipping)
+                ? ''
                 : $mainSampleData->shipping_type,
         ];
 
@@ -300,12 +300,12 @@ class DopingSampleController extends Controller
         ]);
 
         // 2. Procesar el tipo de envío
-        $shippingType = $validated['shipping_type'] === 'otros' && !empty($validated['custom_shipping_type'])
+        $shippingType = $validated['shipping_type'] === 'otros' && ! empty($validated['custom_shipping_type'])
             ? $validated['custom_shipping_type']
             : $validated['shipping_type'];
 
         // 3. Combinar fecha y hora
-        $receivedAtTimestamp = $validated['received_at'] . ' ' . $validated['received_at_hour'] . ':00';
+        $receivedAtTimestamp = $validated['received_at'].' '.$validated['received_at_hour'].':00';
 
         $requestSamples = $validated['samples'];
         $requestIds = collect($requestSamples)->pluck('id')->all();
@@ -333,22 +333,22 @@ class DopingSampleController extends Controller
             if (count($requestSamples) > 0) {
                 $cases = ['external_id' => [], 'type' => [], 'category' => []];
                 $ids = [];
-                
+
                 foreach ($requestSamples as $sample) {
                     $id = $sample['id'];
                     $ids[] = $id;
-                    $cases['external_id'][] = "WHEN id = {$id} THEN " . DB::getPdo()->quote($sample['external'] ?? '');
-                    $cases['type'][] = "WHEN id = {$id} THEN " . DB::getPdo()->quote($sample['type']);
-                    $cases['category'][] = "WHEN id = {$id} THEN " . DB::getPdo()->quote($sample['category']);
+                    $cases['external_id'][] = "WHEN id = {$id} THEN ".DB::getPdo()->quote($sample['external'] ?? '');
+                    $cases['type'][] = "WHEN id = {$id} THEN ".DB::getPdo()->quote($sample['type']);
+                    $cases['category'][] = "WHEN id = {$id} THEN ".DB::getPdo()->quote($sample['category']);
                 }
 
                 $idsStr = implode(',', $ids);
-                $sql = "UPDATE samples SET 
-                    external_id = CASE " . implode(' ', $cases['external_id']) . " END,
-                    type = CASE " . implode(' ', $cases['type']) . " END,
-                    category = CASE " . implode(' ', $cases['category']) . " END
+                $sql = 'UPDATE samples SET 
+                    external_id = CASE '.implode(' ', $cases['external_id']).' END,
+                    type = CASE '.implode(' ', $cases['type']).' END,
+                    category = CASE '.implode(' ', $cases['category'])." END
                     WHERE id IN ({$idsStr}) AND reception_id = ?";
-                
+
                 DB::statement($sql, [$reception_id]);
             }
         });

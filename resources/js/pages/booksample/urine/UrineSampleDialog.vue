@@ -64,6 +64,21 @@ const confirmacionChecks = reactive<Record<string, boolean>>({
     ANF: false,
 });
 
+// Opciones de tipo de análisis
+const tipoAnalisisOptions = [
+    { value: 'GC/MS', label: 'GC/MS' },
+    { value: 'COBAS', label: 'COBAS' },
+    { value: 'ELISA', label: 'ELISA' },
+    { value: 'Inmuno.Placa', label: 'Inmuno.Placa' },
+];
+
+const tipoAnalisisChecks = reactive<Record<string, boolean>>({
+    'GC/MS': false,
+    COBAS: false,
+    ELISA: false,
+    'Inmuno.Placa': false,
+});
+
 // Drogas personalizadas (otros)
 const screeningOtros = ref<string[]>([]);
 const confirmacionOtros = ref<string[]>([]);
@@ -81,6 +96,7 @@ const form = useForm({
     volumen: '',
     screening: [] as string[],
     confirmacion: [] as string[],
+    tipo_analisis: [] as string[],
     observaciones: '',
     cantidad_droga: null as number | null,
     encargado_ingreso: '',
@@ -98,6 +114,28 @@ const handleConfirmacionToggle = (drug: string, pressed: boolean) => {
     confirmacionChecks[drug] = pressed;
     updateConfirmacionForm();
 };
+
+// Funciones para manejar toggle de tipo de análisis
+const handleTipoAnalisisToggle = (tipo: string, pressed: boolean) => {
+    tipoAnalisisChecks[tipo] = pressed;
+    updateTipoAnalisisForm();
+};
+
+const updateTipoAnalisisForm = () => {
+    form.tipo_analisis = Object.keys(tipoAnalisisChecks).filter((key) => tipoAnalisisChecks[key]);
+};
+
+const handleSelectAllTipoAnalisis = () => {
+    const allChecked = Object.values(tipoAnalisisChecks).every((val) => val === true);
+    Object.keys(tipoAnalisisChecks).forEach((key) => {
+        tipoAnalisisChecks[key] = !allChecked;
+    });
+    updateTipoAnalisisForm();
+};
+
+const allTipoAnalisisSelected = computed(() => {
+    return Object.values(tipoAnalisisChecks).every((val) => val === true);
+});
 
 // Seleccionar todas las drogas en screening
 const handleSelectAllScreening = () => {
@@ -205,6 +243,7 @@ watch(
             // Resetear checkboxes y otros
             Object.keys(screeningChecks).forEach((key) => (screeningChecks[key] = false));
             Object.keys(confirmacionChecks).forEach((key) => (confirmacionChecks[key] = false));
+            Object.keys(tipoAnalisisChecks).forEach((key) => (tipoAnalisisChecks[key] = false));
             screeningOtros.value = [];
             confirmacionOtros.value = [];
 
@@ -244,6 +283,22 @@ watch(
             } else {
                 form.confirmacion = [];
             }
+
+            // Parsear tipo_analisis: convertir string separado por comas a array
+            if (sample.tipo_analisis && typeof sample.tipo_analisis === 'string' && sample.tipo_analisis.trim().length > 0) {
+                const tipoAnalisisArray = sample.tipo_analisis
+                    .split(',')
+                    .map((s: string) => s.trim())
+                    .filter((s: string) => s.length > 0);
+                form.tipo_analisis = tipoAnalisisArray;
+                tipoAnalisisArray.forEach((tipo) => {
+                    if (tipo in tipoAnalisisChecks) {
+                        tipoAnalisisChecks[tipo] = true;
+                    }
+                });
+            } else {
+                form.tipo_analisis = [];
+            }
         } else if (isOpen && !sample) {
             form.reset();
             fechaIngresoDate.value = undefined;
@@ -252,6 +307,7 @@ watch(
             // Resetear checkboxes y otros
             Object.keys(screeningChecks).forEach((key) => (screeningChecks[key] = false));
             Object.keys(confirmacionChecks).forEach((key) => (confirmacionChecks[key] = false));
+            Object.keys(tipoAnalisisChecks).forEach((key) => (tipoAnalisisChecks[key] = false));
             screeningOtros.value = [];
             confirmacionOtros.value = [];
         }
@@ -304,6 +360,7 @@ const closeDialog = () => {
     // Resetear todos los toggles y otros
     Object.keys(screeningChecks).forEach((key) => (screeningChecks[key] = false));
     Object.keys(confirmacionChecks).forEach((key) => (confirmacionChecks[key] = false));
+    Object.keys(tipoAnalisisChecks).forEach((key) => (tipoAnalisisChecks[key] = false));
     screeningOtros.value = [];
     confirmacionOtros.value = [];
     screeningOtroInput.value = '';
@@ -321,10 +378,12 @@ const handleSubmit = () => {
     // Sincronizar arrays desde los estados de los toggles + otros
     updateScreeningForm();
     updateConfirmacionForm();
+    updateTipoAnalisisForm();
 
     // Convertir arrays a strings separados por coma
     const screeningString = form.screening.join(',');
     const confirmacionString = form.confirmacion.join(',');
+    const tipoAnalisisString = form.tipo_analisis.join(',');
 
     const dataToSend = {
         internal_id: form.internal_id,
@@ -333,6 +392,7 @@ const handleSubmit = () => {
         volumen: form.volumen,
         screening: screeningString,
         confirmacion: confirmacionString,
+        tipo_analisis: tipoAnalisisString,
         observaciones: form.observaciones,
         cantidad_droga: form.cantidad_droga,
         encargado_ingreso: form.encargado_ingreso,
@@ -509,6 +569,36 @@ const dialogTitle = computed(() => {
                             >
                                 <PlusCircle class="h-4 w-4" />
                                 Otros
+                            </Button>
+                        </div>
+                    </div>
+
+                    <!-- Tipo de Análisis -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <Label class="text-base">Tipo de Análisis</Label>
+                            <Button
+                                v-if="!isReadOnly"
+                                type="button"
+                                @click="handleSelectAllTipoAnalisis"
+                                variant="ghost"
+                                size="sm"
+                                class="h-8 text-xs"
+                            >
+                                {{ allTipoAnalisisSelected ? 'Deseleccionar Todos' : 'Seleccionar Todos' }}
+                            </Button>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <Button
+                                v-for="tipo in tipoAnalisisOptions"
+                                :key="'tipo-analisis-' + tipo.value"
+                                type="button"
+                                @click="handleTipoAnalisisToggle(tipo.value, !tipoAnalisisChecks[tipo.value])"
+                                :disabled="isReadOnly"
+                                :variant="tipoAnalisisChecks[tipo.value] ? 'default' : 'outline'"
+                                size="sm"
+                            >
+                                {{ tipo.label }}
                             </Button>
                         </div>
                     </div>
