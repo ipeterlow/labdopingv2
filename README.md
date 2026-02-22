@@ -102,13 +102,13 @@ php artisan about
 cd labdopingv2 &&
 php artisan down &&
 cd .. &&
-date=$(date +'%d-%m-%Y') && mv /home/dev/labdopingv2 /home/dev/labdopingv2-$date &&
+date=$(date +'%d-%m-%Y') && mv /home/labdoping/labdopingv2 /home/labdoping/labdopingv2-$date &&
 unzip -qo labdopingv2.zip &&
 rm -f labdopingv2.zip &&
 rm -rf public_html &&
-ln -s /home/dev/labdopingv2/public /home/dev/public_html &&
+ln -s /home/labdoping/labdopingv2/public /home/labdoping/public_html &&
 cd labdopingv2 &&
-find /home/dev/labdopingv2/ -name ".DS_Store" -type f -delete &&
+find /home/labdoping/labdopingv2/ -name ".DS_Store" -type f -delete &&
 rm -rf public/storage &&
 composer clear-cache &&
 composer install &&

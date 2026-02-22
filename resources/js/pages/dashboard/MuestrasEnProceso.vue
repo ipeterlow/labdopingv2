@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FlaskConical, Scissors, Droplets } from 'lucide-vue-next';
+import { Droplets, FlaskConical, Scissors } from 'lucide-vue-next';
 
 defineProps<{
     orina: number;

@@ -4,6 +4,7 @@ use App\Http\Controllers\BookHairSampleController;
 use App\Http\Controllers\BookSalivaSampleController;
 use App\Http\Controllers\BookUrineSampleController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DopingSampleController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ReportSampleController;
@@ -12,8 +13,6 @@ use App\Http\Controllers\SampleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
-use Inertia\Inertia;
 
 Route::get('/', function () {
     if (! auth()->check()) {
