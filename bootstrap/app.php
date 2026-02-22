@@ -33,5 +33,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->respond(function ($response, $exception, $request) {
+            if ($response->getStatusCode() === 403 && auth()->check()) {
+                return redirect()->route('home');
+            }
+
+            return $response;
+        });
     })->create();

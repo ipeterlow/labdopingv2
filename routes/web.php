@@ -12,19 +12,38 @@ use App\Http\Controllers\SampleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect()->route('dashboard');
+    if (! auth()->check()) {
+        return redirect()->route('login');
+    }
+
+    $user = auth()->user();
+
+    // Redirigir a la primera ruta que el usuario tenga permiso
+    $routeMap = [
+        'dashboard.index' => 'dashboard',
+        'dopingsample.index' => 'dopingsample.index',
+        'sample.index' => 'sample.index',
+        'reportsample.index' => 'reportsample.index',
+        'bookurinesample.index' => 'bookurinesample.index',
+        'booksalivasample.index' => 'booksalivasample.index',
+        'bookhairsample.index' => 'bookhairsample.index',
+    ];
+
+    foreach ($routeMap as $permission => $routeName) {
+        if ($user->can($permission)) {
+            return redirect()->route($routeName);
+        }
     }
 
     return redirect()->route('login');
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified', 'permission:dashboard.index'])->name('dashboard');
 
 // Rutas protegidas por autenticación y permisos
 Route::middleware(['auth'])->group(function () {

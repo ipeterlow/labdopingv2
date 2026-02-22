@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { usePermissions } from '@/composables/usePermissions';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { Beaker, Book, BookUser, FilePenLine, Key, Shield, TestTube, Users } from 'lucide-vue-next';
+import { Beaker, Book, BookUser, FilePenLine, Key, LayoutDashboard, Shield, TestTube, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
@@ -14,6 +14,12 @@ const { can, canAny, isSuperAdmin } = usePermissions();
 
 // Definición de todos los items con sus permisos requeridos
 const allNavItems: (NavItem & { permission?: string; permissions?: string[] })[] = [
+    {
+        title: 'Dashboard',
+        href: '/dashboard',
+        icon: LayoutDashboard,
+        permission: 'dashboard.index',
+    },
     {
         title: 'Recepcion Muestras',
         href: '/dopingsample',
@@ -108,7 +114,7 @@ const footerNavItems: NavItem[] = [];
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="route('dashboard')">
+                        <Link :href="route('home')">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>
