@@ -37,12 +37,13 @@ const submit = () => {
                         </p>
                     </div>
                 </div>
+
+                <Button type="submit" :disabled="form.processing">
+                    <SendHorizonal class="mr-2 h-4 w-4" />
+                    <span v-if="form.processing">Guardando…</span>
+                    <span v-else>Crear permiso</span>
+                </Button>
             </form>
-            <Button type="submit" :disabled="form.processing">
-                <SendHorizonal class="mr-2 h-4 w-4" />
-                <span v-if="form.processing">Guardando…</span>
-                <span v-else>Crear permiso</span>
-            </Button>
         </div>
     </AppLayout>
 </template>
