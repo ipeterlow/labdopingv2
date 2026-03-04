@@ -188,14 +188,13 @@ class ReportSampleController extends Controller
             ->where('type_document', $documentType)
             ->first();
 
-        // 4. Sube el NUEVO archivo a S3 (siempre)
-        $path = $file->storeAs("{$folder}", $filename, 's3');
-
-        // 5. Si existía un documento, borra el archivo ANTIGUO de S3
+        // 4. Si existía un documento, borra PRIMERO el archivo ANTIGUO de S3
         if ($existingDocument && $existingDocument->document_archive) {
-            // Usamos Storage::disk('s3') para asegurarnos
             Storage::disk('s3')->delete($existingDocument->document_archive);
         }
+
+        // 5. Sube el NUEVO archivo a S3 (siempre)
+        $path = $file->storeAs("{$folder}", $filename, 's3');
 
         $document = Document::updateOrCreate(
             [

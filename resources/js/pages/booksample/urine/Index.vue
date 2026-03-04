@@ -62,8 +62,7 @@ const handleResults = (sample: UrineSample) => {
 };
 
 const handleSuccess = () => {
-    // Recargar solo los datos necesarios
-    router.reload({ only: ['urineSamples', 'pagination'] });
+    router.reload({ only: ['urineSamples', 'pagination', 'filters'] });
 };
 
 // Proporcionar handlers globalmente a través de provide/inject

@@ -51,6 +51,7 @@ export const sampleColumns: ColumnDef<Sample>[] = [
             h(ActionCell, {
                 resource: 'reportsample',
                 id: row.original.id,
+                externalId: row.original.external_id,
                 show: true,
                 uploadInforme: true,
                 uploadCadenaCustodia: true,

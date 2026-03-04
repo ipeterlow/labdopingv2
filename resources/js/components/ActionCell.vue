@@ -21,6 +21,7 @@ import { ref } from 'vue';
 const props = defineProps<{
     resource: string;
     id: string | number;
+    externalId?: string;
     show?: boolean;
     edit?: boolean;
     destroy?: boolean;
@@ -139,6 +140,7 @@ const handleUploaded = (tipo: string) => {
         v-if="uploadInforme !== false"
         v-model="showUploadInforme"
         :sample-id="id"
+        :external-id="externalId"
         title="Subir Informe de Muestra"
         description="Selecciona un archivo PDF o toma una foto del informe de la muestra."
         action="/documents/upload-informe"

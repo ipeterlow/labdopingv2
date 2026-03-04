@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
-import { useForm } from '@inertiajs/vue3';
+import axios from 'axios';
 import type { DateValue } from '@internationalized/date';
 import { getLocalTimeZone, parseDate } from '@internationalized/date';
 import { CalendarIcon, Check, ChevronsUpDown, PlusCircle, X } from 'lucide-vue-next';
@@ -126,7 +126,9 @@ const confirmacionOtrosDialog = ref(false);
 const screeningOtroInput = ref('');
 const confirmacionOtroInput = ref('');
 
-const form = useForm({
+const isSubmitting = ref(false);
+
+const form = reactive({
     internal_id: '',
     largo: '',
     color: '',
@@ -344,7 +346,7 @@ watch(
                 form.tipo_analisis = [];
             }
         } else if (isOpen && !sample) {
-            form.reset();
+            Object.assign(form, { internal_id: '', largo: '', color: '', tipo_muestra: '', screening: [], confirmacion: [], tipo_analisis: [], observaciones: '', cantidad_droga: null, encargado_ingreso: '', fecha_ingreso: '', sample_taken_at: '' });
             fechaIngresoDate.value = undefined;
             horaIngreso.value = '';
             fechaTomaMuestraDate.value = undefined;
@@ -401,7 +403,7 @@ const updateHoraIngreso = () => {
 
 const closeDialog = () => {
     emit('update:open', false);
-    form.reset();
+    Object.assign(form, { internal_id: '', largo: '', color: '', tipo_muestra: '', screening: [], confirmacion: [], tipo_analisis: [], observaciones: '', cantidad_droga: null, encargado_ingreso: '', fecha_ingreso: '', sample_taken_at: '' });
     fechaIngresoDate.value = undefined;
     fechaTomaMuestraDate.value = undefined;
     horaIngreso.value = '';
@@ -450,18 +452,19 @@ const handleSubmit = () => {
         sample_taken_at: form.sample_taken_at,
     };
 
-    // El registro en characteristic_samples ya existe, solo actualizar
     const endpoint = route('bookhairsample.update', props.sample.id_characteristic_samples);
-    form.transform(() => dataToSend).put(endpoint, {
-        preserveScroll: true,
-        onSuccess: () => {
+    isSubmitting.value = true;
+    axios.post(endpoint, { ...dataToSend, _method: 'PUT' })
+        .then(() => {
             emit('success');
             closeDialog();
-        },
-        onError: (errors) => {
-            console.error('Error al actualizar:', errors);
-        },
-    });
+        })
+        .catch((error) => {
+            console.error('Error al actualizar:', error.response?.data?.errors || error);
+        })
+        .finally(() => {
+            isSubmitting.value = false;
+        });
 };
 
 const dialogTitle = computed(() => {
@@ -894,8 +897,8 @@ const dialogTitle = computed(() => {
                     <Button type="button" variant="outline" @click="closeDialog">
                         {{ isReadOnly ? 'Cerrar' : 'Cancelar' }}
                     </Button>
-                    <Button v-if="!isReadOnly" type="submit" :disabled="form.processing">
-                        {{ form.processing ? 'Guardando...' : 'Guardar' }}
+                    <Button v-if="!isReadOnly" type="submit" :disabled="isSubmitting">
+                        {{ isSubmitting ? 'Guardando...' : 'Guardar' }}
                     </Button>
                 </DialogFooter>
             </form>

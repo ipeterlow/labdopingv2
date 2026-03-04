@@ -62,8 +62,7 @@ const handleResults = (sample: HairSample) => {
 };
 
 const handleSuccess = () => {
-    // Recargar solo los datos necesarios
-    router.reload({ only: ['hairSamples', 'pagination'] });
+    router.reload({ only: ['hairSamples', 'pagination', 'filters'] });
 };
 
 // Proporcionar handlers globalmente a través de provide/inject

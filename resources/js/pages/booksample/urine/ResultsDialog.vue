@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useForm } from '@inertiajs/vue3';
-import { computed, watch } from 'vue';
+import axios from 'axios';
+import { computed, reactive, ref, watch } from 'vue';
 import type { UrineSample } from './columns';
 
 const props = defineProps<{
@@ -47,8 +47,9 @@ const hasCobas = computed(() => noTipoAnalisisDefined.value || tipoAnalisisArray
 const hasElisa = computed(() => noTipoAnalisisDefined.value || tipoAnalisisArray.value.includes('ELISA'));
 const hasInmuno = computed(() => noTipoAnalisisDefined.value || tipoAnalisisArray.value.includes('Inmuno.Placa'));
 
-// Formulario dinámico basado en las drogas de screening
-const form = useForm<{
+const isSubmitting = ref(false);
+
+const form = reactive<{
     results_gcms: Record<string, string>;
     results_cobas: Record<string, string>;
     results_elisa: Record<string, string>;
@@ -122,7 +123,7 @@ watch(
             form.results_elisa = elisaResults;
             form.results_inmuno = inmunoResults;
         } else if (isOpen && !sample) {
-            form.reset();
+            Object.assign(form, { results_gcms: {}, results_cobas: {}, results_elisa: {}, results_inmuno: {} });
         }
     },
     { immediate: true },
@@ -130,29 +131,32 @@ watch(
 
 const closeDialog = () => {
     emit('update:open', false);
-    form.reset();
+    Object.assign(form, { results_gcms: {}, results_cobas: {}, results_elisa: {}, results_inmuno: {} });
 };
 
 const handleSubmit = () => {
     if (!props.sample || !hasDrugs.value) return;
 
     const endpoint = route('bookurinesample.updateResults', props.sample.id_characteristic_samples);
-
-    form.transform(() => ({
+    const dataToSend = {
         result_gcms: hasGcms.value ? JSON.stringify(form.results_gcms) : undefined,
         result_cobas: hasCobas.value ? JSON.stringify(form.results_cobas) : undefined,
         result_elisa: hasElisa.value ? JSON.stringify(form.results_elisa) : undefined,
         result_inmuno: hasInmuno.value ? JSON.stringify(form.results_inmuno) : undefined,
-    })).put(endpoint, {
-        preserveScroll: true,
-        onSuccess: () => {
+    };
+
+    isSubmitting.value = true;
+    axios.post(endpoint, { ...dataToSend, _method: 'PUT' })
+        .then(() => {
             emit('success');
             closeDialog();
-        },
-        onError: (errors) => {
-            console.error('Error al actualizar resultados:', errors);
-        },
-    });
+        })
+        .catch((error) => {
+            console.error('Error al actualizar resultados:', error.response?.data?.errors || error);
+        })
+        .finally(() => {
+            isSubmitting.value = false;
+        });
 };
 </script>
 
@@ -259,8 +263,8 @@ const handleSubmit = () => {
 
                 <DialogFooter>
                     <Button type="button" variant="outline" @click="closeDialog"> Cancelar </Button>
-                    <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? 'Guardando...' : 'Guardar Resultados' }}
+                    <Button type="submit" :disabled="isSubmitting">
+                        {{ isSubmitting ? 'Guardando...' : 'Guardar Resultados' }}
                     </Button>
                 </DialogFooter>
             </form>

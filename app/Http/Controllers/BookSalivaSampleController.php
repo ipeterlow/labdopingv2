@@ -146,16 +146,16 @@ class BookSalivaSampleController extends Controller
             $sampleData = [];
             $characteristicData = $validated;
 
-            if (isset($validated['internal_id'])) {
+            if (array_key_exists('internal_id', $validated)) {
                 $sampleData['internal_id'] = $validated['internal_id'];
                 unset($characteristicData['internal_id']);
             }
 
-            if (isset($validated['fecha_ingreso'])) {
+            if (array_key_exists('fecha_ingreso', $validated)) {
                 $sampleData['analyzed_at'] = $validated['fecha_ingreso'];
             }
 
-            if (isset($validated['sample_taken_at'])) {
+            if (array_key_exists('sample_taken_at', $validated)) {
                 $sampleData['sample_taken_at'] = $validated['sample_taken_at'];
                 unset($characteristicData['sample_taken_at']);
             }
