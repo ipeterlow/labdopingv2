@@ -220,16 +220,32 @@ class BookSalivaSampleController extends Controller
      */
     public function export(Request $request)
     {
-        $request->validate([
-            'fecha_inicio' => 'required|date',
-            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+        $validated = $request->validate([
+            'tipo_filtro' => 'required|in:fecha,internal_id',
+            'fecha_inicio' => 'required_if:tipo_filtro,fecha|date',
+            'fecha_fin' => 'required_if:tipo_filtro,fecha|date|after_or_equal:fecha_inicio',
+            'internal_id_inicio' => 'required_if:tipo_filtro,internal_id|string|max:255',
+            'internal_id_fin' => 'required_if:tipo_filtro,internal_id|string|max:255',
         ]);
 
-        $samples = CharacteristicSample::query()
+        $query = CharacteristicSample::query()
             ->join('samples', 'characteristic_samples.sample_id', '=', 'samples.id')
             ->join('companies', 'samples.company_id', '=', 'companies.id')
-            ->where('samples.type', '=', 'saliva')
-            ->whereBetween('samples.analyzed_at', [$request->fecha_inicio, $request->fecha_fin])
+            ->where('samples.type', '=', 'saliva');
+
+        if ($validated['tipo_filtro'] === 'internal_id') {
+            $query->whereBetween('samples.internal_id', [
+                $validated['internal_id_inicio'],
+                $validated['internal_id_fin'],
+            ]);
+        } else {
+            $query->whereBetween('samples.analyzed_at', [
+                $validated['fecha_inicio'],
+                $validated['fecha_fin'],
+            ]);
+        }
+
+        $samples = $query
             ->select([
                 'samples.external_id',
                 'samples.internal_id',
