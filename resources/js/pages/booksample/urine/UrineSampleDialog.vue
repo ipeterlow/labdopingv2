@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
-import axios from 'axios';
 import type { DateValue } from '@internationalized/date';
 import { getLocalTimeZone, parseDate } from '@internationalized/date';
+import axios from 'axios';
 import { CalendarIcon, PlusCircle, X } from 'lucide-vue-next';
 import { computed, reactive, ref, watch } from 'vue';
 import type { UrineSample } from './columns';
@@ -302,7 +302,20 @@ watch(
                 form.tipo_analisis = [];
             }
         } else if (isOpen && !sample) {
-            Object.assign(form, { internal_id: '', ph: '', densidad: '', volumen: '', screening: [], confirmacion: [], tipo_analisis: [], observaciones: '', cantidad_droga: null, encargado_ingreso: '', fecha_ingreso: '', sample_taken_at: '' });
+            Object.assign(form, {
+                internal_id: '',
+                ph: '',
+                densidad: '',
+                volumen: '',
+                screening: [],
+                confirmacion: [],
+                tipo_analisis: [],
+                observaciones: '',
+                cantidad_droga: null,
+                encargado_ingreso: '',
+                fecha_ingreso: '',
+                sample_taken_at: '',
+            });
             fechaIngresoDate.value = undefined;
             fechaTomaMuestraDate.value = undefined;
             horaIngreso.value = '';
@@ -355,7 +368,20 @@ const updateHoraIngreso = () => {
 
 const closeDialog = () => {
     emit('update:open', false);
-    Object.assign(form, { internal_id: '', ph: '', densidad: '', volumen: '', screening: [], confirmacion: [], tipo_analisis: [], observaciones: '', cantidad_droga: null, encargado_ingreso: '', fecha_ingreso: '', sample_taken_at: '' });
+    Object.assign(form, {
+        internal_id: '',
+        ph: '',
+        densidad: '',
+        volumen: '',
+        screening: [],
+        confirmacion: [],
+        tipo_analisis: [],
+        observaciones: '',
+        cantidad_droga: null,
+        encargado_ingreso: '',
+        fecha_ingreso: '',
+        sample_taken_at: '',
+    });
     fechaIngresoDate.value = undefined;
     fechaTomaMuestraDate.value = undefined;
     horaIngreso.value = '';
@@ -404,7 +430,8 @@ const handleSubmit = () => {
 
     const endpoint = route('bookurinesample.update', props.sample.id_characteristic_samples);
     isSubmitting.value = true;
-    axios.post(endpoint, { ...dataToSend, _method: 'PUT' })
+    axios
+        .post(endpoint, { ...dataToSend, _method: 'PUT' })
         .then(() => {
             emit('success');
             closeDialog();

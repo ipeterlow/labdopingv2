@@ -146,7 +146,8 @@ const handleSubmit = () => {
     };
 
     isSubmitting.value = true;
-    axios.post(endpoint, { ...dataToSend, _method: 'PUT' })
+    axios
+        .post(endpoint, { ...dataToSend, _method: 'PUT' })
         .then(() => {
             emit('success');
             closeDialog();

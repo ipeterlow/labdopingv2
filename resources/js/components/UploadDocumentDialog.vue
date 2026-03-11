@@ -127,7 +127,7 @@ const uploadFile = async () => {
                     <div v-if="mismatchWarning" class="relative rounded-lg border border-amber-300 bg-amber-50 p-4 pr-10">
                         <button
                             type="button"
-                            class="absolute right-2 top-2 rounded p-1 text-amber-600 hover:bg-amber-100"
+                            class="absolute top-2 right-2 rounded p-1 text-amber-600 hover:bg-amber-100"
                             aria-label="Cerrar"
                             @click="closeMismatchBanner"
                         >
@@ -136,15 +136,12 @@ const uploadFile = async () => {
                         <div class="flex items-start gap-3">
                             <AlertTriangle class="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
                             <div class="space-y-1">
-                                <p class="text-sm font-semibold text-amber-800">
-                                    El informe no corresponde al registro
-                                </p>
+                                <p class="text-sm font-semibold text-amber-800">El informe no corresponde al registro</p>
                                 <p class="text-sm text-amber-700">
                                     El nombre del archivo
                                     <strong>"{{ selectedFile?.name }}"</strong>
                                     no coincide con el número externo
-                                    <strong>"{{ externalId }}"</strong>.
-                                    Verifica que estás subiendo el documento correcto.
+                                    <strong>"{{ externalId }}"</strong>. Verifica que estás subiendo el documento correcto.
                                 </p>
                             </div>
                         </div>
