@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { usePermissions } from '@/composables/usePermissions';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { Beaker, Book, BookUser, FilePenLine, Key, LayoutDashboard, Shield, TestTube, Users } from 'lucide-vue-next';
+import { Beaker, Book, BookUser, FilePenLine, Key, LayoutDashboard, Mail, Shield, TestTube, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
@@ -63,6 +63,12 @@ const allNavItems: (NavItem & { permission?: string; permissions?: string[] })[]
         href: '/company',
         icon: BookUser,
         permission: 'company.index',
+    },
+    {
+        title: 'Gestor Contacto Correos',
+        href: '/companyemailcontacts',
+        icon: Mail,
+        permission: 'companyemailcontacts.index',
     },
     {
         title: 'Usuarios',

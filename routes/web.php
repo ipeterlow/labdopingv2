@@ -4,6 +4,7 @@ use App\Http\Controllers\BookHairSampleController;
 use App\Http\Controllers\BookSalivaSampleController;
 use App\Http\Controllers\BookUrineSampleController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CompanyEmailContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DopingSampleController;
 use App\Http\Controllers\PermissionController;
@@ -139,6 +140,10 @@ Route::middleware(['auth'])->group(function () {
     // Empresas
     Route::resource('company', CompanyController::class)
         ->middleware('permission:company.index');
+
+    // Gestor Contacto Correos
+    Route::resource('companyemailcontacts', CompanyEmailContactController::class)
+        ->middleware('permission:companyemailcontacts.index');
 });
 
 require __DIR__.'/settings.php';

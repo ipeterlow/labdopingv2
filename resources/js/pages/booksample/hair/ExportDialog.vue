@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { DateValue } from '@internationalized/date';
 import { getLocalTimeZone } from '@internationalized/date';
 import { CalendarIcon, Download } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 const props = defineProps<{
     open: boolean;
@@ -17,12 +18,51 @@ const emit = defineEmits<{
     (e: 'update:open', value: boolean): void;
 }>();
 
+// Tipo de filtro
+const tipoFiltro = ref<'fecha' | 'internal_id'>('fecha');
+
 // Fechas
 const fechaInicio = ref<DateValue | undefined>(undefined);
 const fechaFin = ref<DateValue | undefined>(undefined);
 const fechaInicioOpen = ref(false);
 const fechaFinOpen = ref(false);
 const isExporting = ref(false);
+
+// Números internos
+const internalIdInicio = ref('');
+const internalIdFin = ref('');
+
+// Mensaje de error
+const errorMessage = ref('');
+
+// Validación reactiva del rango de número interno
+watch([internalIdInicio, internalIdFin, tipoFiltro], ([inicio, fin, tipo]) => {
+    if (tipo !== 'internal_id') {
+        errorMessage.value = '';
+        return;
+    }
+
+    if (!inicio || !fin) {
+        // No marcamos error hasta que ambos campos tengan valor
+        errorMessage.value = '';
+        return;
+    }
+
+    const inicioNumero = Number(inicio);
+    const finNumero = Number(fin);
+
+    if (Number.isNaN(inicioNumero) || Number.isNaN(finNumero)) {
+        errorMessage.value = 'Los números internos deben ser valores numéricos.';
+        return;
+    }
+
+    if (inicioNumero > finNumero) {
+        errorMessage.value = 'El Nº interno inicio no puede ser mayor que el Nº interno fin.';
+        return;
+    }
+
+    errorMessage.value = '';
+});
 
 const updateFechaInicio = (value: DateValue | undefined) => {
     fechaInicio.value = value;
@@ -38,22 +78,54 @@ const closeDialog = () => {
     emit('update:open', false);
     fechaInicio.value = undefined;
     fechaFin.value = undefined;
+    internalIdInicio.value = '';
+    internalIdFin.value = '';
+    tipoFiltro.value = 'fecha';
+    errorMessage.value = '';
 };
 
 const handleExport = async () => {
-    if (!fechaInicio.value || !fechaFin.value) {
-        alert('Por favor selecciona ambas fechas');
-        return;
-    }
+    errorMessage.value = '';
 
     isExporting.value = true;
 
     try {
-        const inicio = fechaInicio.value.toDate(getLocalTimeZone()).toISOString().split('T')[0];
-        const fin = fechaFin.value.toDate(getLocalTimeZone()).toISOString().split('T')[0];
+        let url = '/bookhairsample/export';
 
-        // Crear URL con parámetros
-        const url = `/bookhairsample/export?fecha_inicio=${inicio}&fecha_fin=${fin}`;
+        if (tipoFiltro.value === 'fecha') {
+            if (!fechaInicio.value || !fechaFin.value) {
+                errorMessage.value = 'Debes seleccionar ambas fechas de análisis.';
+                return;
+            }
+
+            const inicio = fechaInicio.value.toDate(getLocalTimeZone()).toISOString().split('T')[0];
+            const fin = fechaFin.value.toDate(getLocalTimeZone()).toISOString().split('T')[0];
+
+            url += `?tipo_filtro=fecha&fecha_inicio=${inicio}&fecha_fin=${fin}`;
+        } else {
+            if (!internalIdInicio.value || !internalIdFin.value) {
+                errorMessage.value = 'Debes ingresar ambos números internos (inicio y fin).';
+                return;
+            }
+
+            const inicioNumero = Number(internalIdInicio.value);
+            const finNumero = Number(internalIdFin.value);
+
+            if (Number.isNaN(inicioNumero) || Number.isNaN(finNumero)) {
+                errorMessage.value = 'Los números internos deben ser valores numéricos.';
+                return;
+            }
+
+            if (inicioNumero > finNumero) {
+                errorMessage.value = 'El Nº interno inicio no puede ser mayor que el Nº interno fin.';
+                return;
+            }
+
+            const inicio = encodeURIComponent(internalIdInicio.value.trim());
+            const fin = encodeURIComponent(internalIdFin.value.trim());
+
+            url += `?tipo_filtro=internal_id&internal_id_inicio=${inicio}&internal_id_fin=${fin}`;
+        }
 
         // Abrir en nueva ventana para descargar
         window.location.href = url;
@@ -77,7 +149,31 @@ const handleExport = async () => {
             </DialogHeader>
 
             <div class="space-y-4 py-4">
-                <div class="grid gap-4 sm:grid-cols-2">
+                <!-- Selector de tipo de filtro -->
+                <div class="space-y-2">
+                    <Label>Tipo de filtro</Label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            :class="tipoFiltro === 'fecha' ? 'border-primary text-primary' : ''"
+                            @click="tipoFiltro = 'fecha'"
+                        >
+                            Por fecha
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            :class="tipoFiltro === 'internal_id' ? 'border-primary text-primary' : ''"
+                            @click="tipoFiltro = 'internal_id'"
+                        >
+                            Por Nº interno
+                        </Button>
+                    </div>
+                </div>
+
+                <!-- Filtro por fechas -->
+                <div v-if="tipoFiltro === 'fecha'" class="grid gap-4 sm:grid-cols-2">
                     <!-- Fecha Inicio -->
                     <div class="space-y-2">
                         <Label for="fecha_inicio">Fecha Inicio</Label>
@@ -118,11 +214,45 @@ const handleExport = async () => {
                         </Popover>
                     </div>
                 </div>
+
+                <!-- Filtro por número interno -->
+                <div v-else class="grid gap-4 sm:grid-cols-2">
+                    <div class="space-y-2">
+                        <Label for="internal_id_inicio">Nº interno inicio</Label>
+                        <Input
+                            id="internal_id_inicio"
+                            v-model="internalIdInicio"
+                            type="text"
+                            placeholder="Ej: 100"
+                        />
+                    </div>
+                    <div class="space-y-2">
+                        <Label for="internal_id_fin">Nº interno fin</Label>
+                        <Input
+                            id="internal_id_fin"
+                            v-model="internalIdFin"
+                            type="text"
+                            placeholder="Ej: 200"
+                        />
+                    </div>
+                </div>
+
+                <p v-if="errorMessage" class="text-sm text-destructive">
+                    {{ errorMessage }}
+                </p>
             </div>
 
             <DialogFooter>
                 <Button type="button" variant="outline" @click="closeDialog"> Cancelar </Button>
-                <Button type="button" @click="handleExport" :disabled="!fechaInicio || !fechaFin || isExporting">
+                <Button
+                    type="button"
+                    @click="handleExport"
+                    :disabled="
+                        isExporting ||
+                        !!errorMessage ||
+                        (tipoFiltro === 'fecha' ? !fechaInicio || !fechaFin : !internalIdInicio || !internalIdFin)
+                    "
+                >
                     <Download class="mr-2 h-4 w-4" />
                     {{ isExporting ? 'Exportando...' : 'Exportar' }}
                 </Button>
