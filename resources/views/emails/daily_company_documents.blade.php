@@ -39,18 +39,7 @@ se encuentran disponibles para su revisión en la plataforma, con fecha
 </p>
 
 <p>
-Para acceder a los informes, puede ingresar en el siguiente enlace:<br>
-<a href="https://www.labdoping-uchile.cl/login" style="color:#2563EB; text-decoration: underline;">
-    https://www.labdoping-uchile.cl/login
-</a>
-</p>
-
-<p>
 En la plataforma podrá visualizar y descargar los documentos de informe asociados a las muestras registradas.
-</p>
-
-<p>
-Ante cualquier consulta o inconveniente con el acceso, no dude en contactarnos.
 </p>
 
     @if($samples->isEmpty())
@@ -81,6 +70,30 @@ Ante cualquier consulta o inconveniente con el acceso, no dude en contactarnos.
         </tbody>
         </table>
     @endif
+
+<p style="margin-top: 12px; margin-bottom: 8px;">
+    <a
+        href="https://www.labdoping-uchile.cl/login"
+        style="
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 9999px;
+            background-color: #2563EB;
+            color: #FFFFFF;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        "
+    >
+        Ir a la plataforma
+    </a>
+</p>
+
+<p>
+Ante cualquier consulta o inconveniente con el acceso, no dude en contactarnos.
+</p>
 
 <p style="margin-top:16px;">
 Este es un correo generado automáticamente por el sistema de LAB DOPING para mantenerte informado sobre el estado de

@@ -95,7 +95,7 @@ class SendDailyCompanyDocumentsJob implements ShouldQueue
             $totalEmails += $contacts->count();
 
             Mail::to($contacts->all())
-                ->cc('camargodoping@hotmail.com')
+                ->cc('')
                 ->send(new DailyCompanyDocumentsMail($company, $samples, $this->date));
         }
 
