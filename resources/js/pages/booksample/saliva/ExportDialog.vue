@@ -2,8 +2,8 @@
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { DateValue } from '@internationalized/date';
 import { getLocalTimeZone } from '@internationalized/date';
@@ -219,21 +219,11 @@ const handleExport = async () => {
                 <div v-else class="grid gap-4 sm:grid-cols-2">
                     <div class="space-y-2">
                         <Label for="internal_id_inicio">Nº interno inicio</Label>
-                        <Input
-                            id="internal_id_inicio"
-                            v-model="internalIdInicio"
-                            type="text"
-                            placeholder="Ej: 100"
-                        />
+                        <Input id="internal_id_inicio" v-model="internalIdInicio" type="text" placeholder="Ej: 100" />
                     </div>
                     <div class="space-y-2">
                         <Label for="internal_id_fin">Nº interno fin</Label>
-                        <Input
-                            id="internal_id_fin"
-                            v-model="internalIdFin"
-                            type="text"
-                            placeholder="Ej: 200"
-                        />
+                        <Input id="internal_id_fin" v-model="internalIdFin" type="text" placeholder="Ej: 200" />
                     </div>
                 </div>
 
@@ -248,9 +238,7 @@ const handleExport = async () => {
                     type="button"
                     @click="handleExport"
                     :disabled="
-                        isExporting ||
-                        !!errorMessage ||
-                        (tipoFiltro === 'fecha' ? !fechaInicio || !fechaFin : !internalIdInicio || !internalIdFin)
+                        isExporting || !!errorMessage || (tipoFiltro === 'fecha' ? !fechaInicio || !fechaFin : !internalIdInicio || !internalIdFin)
                     "
                 >
                     <Download class="mr-2 h-4 w-4" />

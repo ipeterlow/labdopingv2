@@ -45,4 +45,3 @@ class DailyCompanyDocumentsMail extends Mailable
             ]);
     }
 }
-

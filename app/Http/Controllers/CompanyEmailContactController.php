@@ -128,4 +128,3 @@ class CompanyEmailContactController extends Controller
             ->with('success', 'Contacto de correo eliminado correctamente.');
     }
 }
-

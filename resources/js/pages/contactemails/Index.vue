@@ -44,9 +44,7 @@ const filters = computed(() => page.props.filters as Filters | undefined);
 const companies = computed(() => (page.props.companies as CompanyOption[]) ?? []);
 
 const search = ref(filters.value?.search ?? '');
-const selectedCompanyId = ref<string | null>(
-    filters.value?.company_id ? String(filters.value.company_id) : null,
-);
+const selectedCompanyId = ref<string | null>(filters.value?.company_id ? String(filters.value.company_id) : null);
 const selectedIsActive = ref<string | null>(filters.value?.is_active ?? '');
 
 const dialogOpen = ref(false);
@@ -109,12 +107,10 @@ const handleSuccess = () => {
 <template>
     <Head title="Gestor Contacto Correos" />
     <AppLayout>
-        <div class="p-4 space-y-6">
+        <div class="space-y-6 p-4">
             <div>
                 <h1 class="text-2xl font-semibold">Gestor Contacto Correos</h1>
-                <p class="text-sm text-muted-foreground">
-                    Administra los contactos de correo por empresa que recibirán los informes diarios.
-                </p>
+                <p class="text-sm text-muted-foreground">Administra los contactos de correo por empresa que recibirán los informes diarios.</p>
             </div>
 
             <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -124,7 +120,7 @@ const handleSuccess = () => {
                         <input
                             v-model="search"
                             type="text"
-                            class="h-9 w-full rounded-md border border-input bg-background px-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:w-64"
+                            class="h-9 w-full rounded-md border border-input bg-background px-2 text-sm shadow-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none md:w-64"
                             placeholder="Nombre o email"
                             @keyup.enter="applyFilters"
                         />
@@ -134,7 +130,7 @@ const handleSuccess = () => {
                         <label class="text-sm font-medium text-muted-foreground">Empresa</label>
                         <select
                             v-model="selectedCompanyId"
-                            class="h-9 w-full rounded-md border border-input bg-background px-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:w-64"
+                            class="h-9 w-full rounded-md border border-input bg-background px-2 text-sm shadow-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none md:w-64"
                         >
                             <option value="">Todas</option>
                             <option v-for="company in companies" :key="company.id" :value="String(company.id)">
@@ -147,7 +143,7 @@ const handleSuccess = () => {
                         <label class="text-sm font-medium text-muted-foreground">Estado</label>
                         <select
                             v-model="selectedIsActive"
-                            class="h-9 w-full rounded-md border border-input bg-background px-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:w-40"
+                            class="h-9 w-full rounded-md border border-input bg-background px-2 text-sm shadow-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none md:w-40"
                         >
                             <option value="">Todos</option>
                             <option value="1">Activos</option>
@@ -156,29 +152,13 @@ const handleSuccess = () => {
                     </div>
 
                     <div class="flex gap-2 pt-2 md:pt-0">
-                        <button
-                            type="button"
-                            :class="buttonVariants({ variant: 'default', size: 'sm' })"
-                            @click="applyFilters"
-                        >
-                            Aplicar
-                        </button>
-                        <button
-                            type="button"
-                            :class="buttonVariants({ variant: 'outline', size: 'sm' })"
-                            @click="resetFilters"
-                        >
-                            Limpiar
-                        </button>
+                        <button type="button" :class="buttonVariants({ variant: 'default', size: 'sm' })" @click="applyFilters">Aplicar</button>
+                        <button type="button" :class="buttonVariants({ variant: 'outline', size: 'sm' })" @click="resetFilters">Limpiar</button>
                     </div>
                 </div>
 
                 <div class="flex justify-end">
-                    <button
-                        type="button"
-                        :class="buttonVariants({ variant: 'default', size: 'sm' })"
-                        @click="openCreateDialog"
-                    >
+                    <button type="button" :class="buttonVariants({ variant: 'default', size: 'sm' })" @click="openCreateDialog">
                         Agregar contacto
                     </button>
                 </div>
@@ -186,7 +166,7 @@ const handleSuccess = () => {
 
             <div class="overflow-x-auto rounded-md border">
                 <table class="min-w-full text-sm">
-                    <thead class="bg-muted/50 text-xs uppercase text-muted-foreground">
+                    <thead class="bg-muted/50 text-xs text-muted-foreground uppercase">
                         <tr>
                             <th class="px-3 py-2 text-left">Empresa</th>
                             <th class="px-3 py-2 text-left">Nombre</th>
@@ -197,15 +177,9 @@ const handleSuccess = () => {
                     </thead>
                     <tbody>
                         <tr v-if="contacts.length === 0">
-                            <td colspan="5" class="px-3 py-4 text-center text-sm text-muted-foreground">
-                                No hay contactos registrados.
-                            </td>
+                            <td colspan="5" class="px-3 py-4 text-center text-sm text-muted-foreground">No hay contactos registrados.</td>
                         </tr>
-                        <tr
-                            v-for="contact in contacts"
-                            :key="contact.id"
-                            class="border-t text-sm hover:bg-muted/40"
-                        >
+                        <tr v-for="contact in contacts" :key="contact.id" class="border-t text-sm hover:bg-muted/40">
                             <td class="px-3 py-2">
                                 {{ contact.company?.name ?? '-' }}
                             </td>
@@ -218,11 +192,7 @@ const handleSuccess = () => {
                             <td class="px-3 py-2">
                                 <span
                                     class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
-                                    :class="
-                                        contact.is_active
-                                            ? 'bg-emerald-50 text-emerald-700'
-                                            : 'bg-slate-100 text-slate-600'
-                                    "
+                                    :class="contact.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'"
                                 >
                                     {{ contact.is_active ? 'Activo' : 'Inactivo' }}
                                 </span>
@@ -232,12 +202,7 @@ const handleSuccess = () => {
                                     <Button size="sm" variant="outline" @click="openEditDialog(contact)" title="Editar">
                                         <Pencil class="h-4 w-4" />
                                     </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        @click="deleteContact(contact)"
-                                        title="Eliminar"
-                                    >
+                                    <Button size="sm" variant="outline" @click="deleteContact(contact)" title="Eliminar">
                                         <Trash2 class="h-4 w-4" />
                                     </Button>
                                 </div>
@@ -250,9 +215,7 @@ const handleSuccess = () => {
             <div v-if="pagination" class="flex items-center justify-between text-xs text-muted-foreground">
                 <div>
                     Mostrando
-                    <span class="font-medium">
-                        {{ pagination.from ?? 0 }}–{{ pagination.to ?? 0 }}
-                    </span>
+                    <span class="font-medium"> {{ pagination.from ?? 0 }}–{{ pagination.to ?? 0 }} </span>
                     de
                     <span class="font-medium">{{ pagination.total }}</span>
                     contactos
@@ -270,4 +233,3 @@ const handleSuccess = () => {
         </div>
     </AppLayout>
 </template>
-

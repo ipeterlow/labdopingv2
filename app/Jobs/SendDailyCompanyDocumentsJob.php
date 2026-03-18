@@ -13,8 +13,8 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class SendDailyCompanyDocumentsJob implements ShouldQueue
 {
@@ -153,4 +153,3 @@ class SendDailyCompanyDocumentsJob implements ShouldQueue
         ]);
     }
 }
-

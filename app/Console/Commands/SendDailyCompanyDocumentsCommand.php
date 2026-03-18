@@ -27,4 +27,3 @@ class SendDailyCompanyDocumentsCommand extends Command
         return self::SUCCESS;
     }
 }
-

@@ -118,11 +118,7 @@ const submit = () => {
                             <SelectValue placeholder="Selecciona una empresa" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem
-                                v-for="company in companies"
-                                :key="company.id"
-                                :value="String(company.id)"
-                            >
+                            <SelectItem v-for="company in companies" :key="company.id" :value="String(company.id)">
                                 {{ company.name }}
                             </SelectItem>
                         </SelectContent>
@@ -157,4 +153,3 @@ const submit = () => {
         </DialogContent>
     </Dialog>
 </template>
-
