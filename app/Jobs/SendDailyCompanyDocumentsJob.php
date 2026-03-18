@@ -65,9 +65,46 @@ class SendDailyCompanyDocumentsJob implements ShouldQueue
             $contacts = CompanyEmailContact::query()
                 ->active()
                 ->where('company_id', $companyId)
-                ->pluck('email');
+                ->pluck('email')
+                ->map(function (?string $email) use ($company) {
+                    if ($email === null) {
+                        return null;
+                    }
+
+                    // Eliminar todos los espacios y caracteres de control del correo
+                    $normalized = preg_replace('/\s+/', '', $email ?? '');
+
+                    if (empty($normalized)) {
+                        Log::channel('mail')->warning('Email vacío después de normalizar', [
+                            'company_id' => $company->id,
+                            'raw_email' => $email,
+                        ]);
+
+                        return null;
+                    }
+
+                    if (! filter_var($normalized, FILTER_VALIDATE_EMAIL)) {
+                        Log::channel('mail')->warning('Email inválido para envío de informes diarios', [
+                            'company_id' => $company->id,
+                            'raw_email' => $email,
+                            'normalized_email' => $normalized,
+                        ]);
+
+                        return null;
+                    }
+
+                    return $normalized;
+                })
+                ->filter()
+                ->unique()
+                ->values();
 
             if ($contacts->isEmpty()) {
+                Log::channel('mail')->info('Empresa sin emails válidos para envío de informes diarios', [
+                    'company_id' => $company->id,
+                    'company_name' => $company->name,
+                ]);
+
                 continue;
             }
 
@@ -94,8 +131,13 @@ class SendDailyCompanyDocumentsJob implements ShouldQueue
             $totalCompanies++;
             $totalEmails += $contacts->count();
 
-            Mail::to($contacts->all())
-                ->cc('')
+            $to = $contacts->all();
+
+            if (empty($to)) {
+                continue;
+            }
+
+            Mail::to($to)
                 ->send(new DailyCompanyDocumentsMail($company, $samples, $this->date));
         }
 

@@ -487,17 +487,21 @@ const dialogTitle = computed(() => {
                 <div class="space-y-4">
                     <h3 class="font-semibold">Características Físicas</h3>
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        <div class="space-y-2">
-                            <Label for="ph">pH</Label>
-                            <Input id="ph" v-model="form.ph" :disabled="isReadOnly" :placeholder="isReadOnly ? '' : 'Ej: 6.5'" />
-                        </div>
-                        <div class="space-y-2">
-                            <Label for="densidad">Densidad</Label>
-                            <Input id="densidad" v-model="form.densidad" :disabled="isReadOnly" :placeholder="isReadOnly ? '' : 'Ej: 1.020'" />
-                        </div>
+                       
+                        
                         <div class="space-y-2">
                             <Label for="volumen">Volumen (ml)</Label>
                             <Input id="volumen" v-model="form.volumen" :disabled="isReadOnly" :placeholder="isReadOnly ? '' : 'Ej: 50'" />
+                        </div>
+                        <div class="space-y-2">
+                            <Label for="ph">pH</Label>
+                            <Input id="ph" v-model="form.ph" :disabled="isReadOnly"
+                                :placeholder="isReadOnly ? '' : 'Ej: 6.5'" />
+                        </div>
+                        <div class="space-y-2">
+                            <Label for="densidad">Densidad</Label>
+                            <Input id="densidad" v-model="form.densidad" :disabled="isReadOnly"
+                                :placeholder="isReadOnly ? '' : 'Ej: 1.020'" />
                         </div>
                     </div>
                 </div>
