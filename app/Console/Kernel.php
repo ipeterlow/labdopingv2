@@ -14,7 +14,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('reports:send-daily-company-documents')
             ->timezone('America/Santiago')
-            ->dailyAt('17:00')
+            ->dailyAt('18:00')
             ->withoutOverlapping();
     }
 
