@@ -2,6 +2,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { formatDate, formatDateTime } from '@/lib/utils';
 import { Head, useForm } from '@inertiajs/vue3';
 
 // Props que vienen del controlador
@@ -84,24 +85,24 @@ const form = useForm({
 
                 <div class="space-y-2">
                     <Label for="sent_at">Fecha Envio</Label>
-                    <Input id="sent_at" type="text" v-model="form.sent_at" readonly />
+                    <Input id="sent_at" type="text" :value="formatDate(props.sample.sent_at)" readonly />
                 </div>
                 <div class="space-y-2">
                     <Label for="received_at">Fecha Recepcion</Label>
-                    <Input id="received_at" type="text" v-model="form.received_at" readonly />
+                    <Input id="received_at" type="text" :value="formatDateTime(props.sample.received_at)" readonly />
                 </div>
                 <div class="space-y-2">
                     <Label for="analyzed_at">Fecha Analisis</Label>
-                    <Input id="analyzed_at" type="text" v-model="form.analyzed_at" readonly />
+                    <Input id="analyzed_at" type="text" :value="formatDate(props.sample.analyzed_at)" readonly />
                 </div>
 
                 <div class="space-y-2">
                     <Label for="sample_taken_at">Fecha Toma de Muestra</Label>
-                    <Input id="sample_taken_at" type="text" v-model="form.sample_taken_at" readonly />
+                    <Input id="sample_taken_at" type="text" :value="formatDate(props.sample.sample_taken_at)" readonly />
                 </div>
                 <div class="space-y-2">
                     <Label for="results_at">Fecha Resultado</Label>
-                    <Input id="results_at" type="text" v-model="form.results_at" readonly />
+                    <Input id="results_at" type="text" :value="formatDate(props.sample.results_at)" readonly />
                 </div>
             </div>
         </div>

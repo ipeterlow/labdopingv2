@@ -93,7 +93,7 @@ const submit = () => {
         <div class="p-4">
             <h1 class="mb-4 text-2xl font-semibold">Create User</h1>
 
-            <form class="w-8/12 space-y-4" @submit.prevent="submit">
+            <form class="w-full space-y-4 lg:w-8/12" @submit.prevent="submit">
                 <!-- NAME -->
 
                 <div class="space-y-4 rounded-md border bg-card p-6">
@@ -241,7 +241,7 @@ const submit = () => {
                         <!-- Selector de roles disponibles -->
                         <div class="space-y-2">
                             <Label class="text-sm text-muted-foreground">Roles disponibles</Label>
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                 <button
                                     v-for="role in roles"
                                     :key="role.id"

@@ -247,102 +247,152 @@ class BookSalivaSampleController extends Controller
 
         $samples = $query
             ->select([
-                'samples.external_id',
                 'samples.internal_id',
-                'samples.category',
-                'companies.name as company_name',
+                'samples.external_id',
                 'samples.received_at',
                 'samples.analyzed_at',
-                'samples.sample_taken_at',
+                'characteristic_samples.encargado_ingreso',
+                'companies.name as company_name',
+                'characteristic_samples.volumen',
                 'characteristic_samples.ph',
                 'characteristic_samples.densidad',
-                'characteristic_samples.volumen',
+                'characteristic_samples.observaciones',
                 'characteristic_samples.screening',
                 'characteristic_samples.confirmacion',
-                'characteristic_samples.observaciones',
-                'characteristic_samples.cantidad_droga',
-                'characteristic_samples.encargado_ingreso',
-                'characteristic_samples.fecha_ingreso',
                 'characteristic_samples.result_gcms',
                 'characteristic_samples.result_cobas',
+                'characteristic_samples.result_elisa',
+                'characteristic_samples.result_inmuno',
             ])
             ->orderBy('samples.analyzed_at', 'asc')
             ->get();
 
-        // Crear spreadsheet
+        $lastCol = 'P';
+        $rowsPerPage = 15;
+
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet;
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Arial')->setSize(9);
         $sheet = $spreadsheet->getActiveSheet();
 
-        // Headers
+        $pageSetup = $sheet->getPageSetup();
+        $pageSetup->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_LEGAL);
+        $pageSetup->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE);
+        $pageSetup->setFitToWidth(1);
+        $pageSetup->setFitToHeight(0);
+        $pageSetup->setRowsToRepeatAtTopByStartAndEnd(1, 1);
+
+        $margins = $sheet->getPageMargins();
+        $margins->setTop(0.4);
+        $margins->setBottom(0.4);
+        $margins->setLeft(0.3);
+        $margins->setRight(0.3);
+        $margins->setHeader(0.2);
+        $margins->setFooter(0.2);
+
+        $sheet->getHeaderFooter()->setOddFooter('&CPágina &P de &N');
+
         $headers = [
-            'Nº Externo',
-            'Nº Interno',
-            'Tipo',
-            'Empresa',
-            'Fecha Recepción',
-            'Fecha Análisis',
-            'Fecha de Toma de Muestra',
+            'N°Codigo interno',
+            'N°Codigo externo',
+            'Fecha y hora recepción',
+            'Fecha y hora ingreso',
+            'Persona que ingresa',
+            'Procedencia/sello y/o código',
+            'Volumen',
             'pH',
             'Densidad',
-            'Volumen',
+            'Observaciones',
             'Screening',
             'Confirmación',
-            'Observaciones',
-            'Cantidad de Droga',
-            'Encargado de Ingreso',
-            'Fecha de Ingreso',
             'Resultado GC/MS',
             'Resultado COBAS',
+            'Resultado ELISA',
+            'Inmuno.placa',
         ];
 
         $sheet->fromArray($headers, null, 'A1');
 
-        // Estilo para headers
         $headerStyle = [
-            'font' => ['bold' => true],
+            'font' => ['bold' => true, 'size' => 9],
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
                 'startColor' => ['rgb' => 'E2E8F0'],
             ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                'wrapText' => true,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
         ];
-        $sheet->getStyle('A1:R1')->applyFromArray($headerStyle);
+        $sheet->getStyle("A1:{$lastCol}1")->applyFromArray($headerStyle);
+        $sheet->getRowDimension(1)->setRowHeight(30);
 
-        // Data rows
         $row = 2;
         foreach ($samples as $sample) {
+            $receivedAt = $sample->received_at
+                ? \Carbon\Carbon::parse($sample->received_at)->format('d-m-Y H:i')
+                : '-';
+            $analyzedAt = $sample->analyzed_at
+                ? \Carbon\Carbon::parse($sample->analyzed_at)->format('d-m-Y H:i')
+                : '-';
+
             $sheet->fromArray([
-                $sample->external_id,
                 $sample->internal_id ?: '-',
-                $sample->category ?: '-',
-                $sample->company_name,
-                $sample->received_at ?: '-',
-                $sample->analyzed_at ?: '-',
-                $sample->sample_taken_at ?: '-',
+                $sample->external_id ?: '-',
+                null,
+                null,
+                $sample->encargado_ingreso ?: '-',
+                $sample->company_name ?: '-',
+                $sample->volumen ?: '-',
                 $sample->ph ?: '-',
                 $sample->densidad ?: '-',
-                $sample->volumen ?: '-',
+                $sample->observaciones ?: '-',
                 $sample->screening ?: '-',
                 $sample->confirmacion ?: '-',
-                $sample->observaciones ?: '-',
-                $sample->cantidad_droga ?: '-',
-                $sample->encargado_ingreso ?: '-',
-                $sample->fecha_ingreso ?: '-',
                 $sample->result_gcms ?: '-',
                 $sample->result_cobas ?: '-',
+                $sample->result_elisa ?: '-',
+                $sample->result_inmuno ?: '-',
             ], null, 'A'.$row);
+
+            $sheet->setCellValueExplicit("C{$row}", $receivedAt, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("D{$row}", $analyzedAt, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+
             $row++;
         }
 
-        // Auto-ajustar columnas
-        foreach (range('A', 'R') as $col) {
+        $lastRow = $row - 1;
+
+        $dataStyle = [
+            'alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+        ];
+        if ($lastRow >= 2) {
+            $sheet->getStyle("A2:{$lastCol}{$lastRow}")->applyFromArray($dataStyle);
+        }
+
+        foreach (range('A', $lastCol) as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // Generar archivo
+        for ($breakRow = 2 + $rowsPerPage; $breakRow <= $lastRow; $breakRow += $rowsPerPage) {
+            $sheet->setBreak("A{$breakRow}", \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet::BREAK_ROW);
+        }
+
         $filename = 'muestras_saliva_'.date('Y-m-d_His').'.xlsx';
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
 
-        // Enviar headers
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="'.$filename.'"');
         header('Cache-Control: max-age=0');
