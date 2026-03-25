@@ -218,6 +218,24 @@ class BookUrineSampleController extends Controller
             ->with('success', 'Resultados de la muestra actualizados correctamente.');
     }
 
+    private function formatResult($value)
+    {
+        if (empty($value)) {
+            return '-';
+        }
+        $decoded = json_decode($value, true);
+        if (is_array($decoded)) {
+            $parts = [];
+            foreach ($decoded as $key => $val) {
+                $parts[] = "$key: $val";
+            }
+
+            return implode(' - ', $parts);
+        }
+
+        return $value;
+    }
+
     /**
      * Export urine samples to Excel based on date range
      */
@@ -353,8 +371,8 @@ class BookUrineSampleController extends Controller
                 $sample->observaciones ?: '-',
                 $sample->screening ?: '-',
                 $sample->confirmacion ?: '-',
-                $sample->result_gcms ?: '-',
-                $sample->result_cobas ?: '-',
+                $this->formatResult($sample->result_gcms),
+                $this->formatResult($sample->result_cobas),
             ], null, 'A'.$row);
 
             $sheet->setCellValueExplicit("C{$row}", $receivedAt, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
