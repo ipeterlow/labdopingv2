@@ -37,7 +37,8 @@ class DailyCompanyDocumentsMail extends Mailable
     {
         return $this->subject(
             'Informes disponibles '.$this->date->format('d-m-Y').' - '.$this->company->name
-        )->view('emails.daily_company_documents')
+        )->cc('dopinglaboratorio@ciq.uchile.cl')
+            ->view('emails.daily_company_documents')
             ->with([
                 'company' => $this->company,
                 'samples' => $this->samples,
