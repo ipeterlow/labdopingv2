@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
+import TurnstileWidget from '@/components/TurnstileWidget.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -8,17 +9,31 @@ import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 defineProps<{
     status?: string;
     canResetPassword: boolean;
 }>();
 
+const isTurnstileValid = ref(false);
+
 const form = useForm({
     email: '',
     password: '',
     remember: false,
+    'cf-turnstile-response': '',
 });
+
+const onTurnstileSuccess = (token: string) => {
+    form['cf-turnstile-response'] = token;
+    isTurnstileValid.value = true;
+};
+
+const onTurnstileError = () => {
+    form['cf-turnstile-response'] = '';
+    isTurnstileValid.value = false;
+};
 
 const submit = () => {
     form.post(route('login'), {
@@ -78,11 +93,19 @@ const submit = () => {
                     </Label>
                 </div>
 
-                <Button type="submit" class="mt-4 w-full" :tabindex="4" :disabled="form.processing">
-                    <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
-                    Iniciar sesión
+                <Button type="submit" class="mt-4 w-full" :tabindex="4" :disabled="form.processing || !isTurnstileValid">
+                    <LoaderCircle v-if="form.processing || !isTurnstileValid" class="h-4 w-4 animate-spin" />
+                    {{ !isTurnstileValid ? 'Verificando...' : 'Iniciar sesión' }}
                 </Button>
+
+                <InputError :message="form.errors['cf-turnstile-response']" />
             </div>
+
+            <TurnstileWidget
+                @verify="onTurnstileSuccess"
+                @error="onTurnstileError"
+                @expire="onTurnstileError"
+            />
         </form>
     </AuthBase>
 </template>
