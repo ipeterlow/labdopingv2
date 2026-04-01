@@ -101,11 +101,7 @@ const submit = () => {
                 <InputError :message="form.errors['cf-turnstile-response']" />
             </div>
 
-            <TurnstileWidget
-                @verify="onTurnstileSuccess"
-                @error="onTurnstileError"
-                @expire="onTurnstileError"
-            />
+            <TurnstileWidget @verify="onTurnstileSuccess" @error="onTurnstileError" @expire="onTurnstileError" />
         </form>
     </AuthBase>
 </template>

@@ -26,9 +26,7 @@ const loadTurnstileScript = (): Promise<void> => {
             return;
         }
 
-        const existingScript = document.querySelector(
-            'script[src*="challenges.cloudflare.com/turnstile"]',
-        );
+        const existingScript = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
         if (existingScript) {
             if ((window as any).turnstile) {
                 resolve();
@@ -39,8 +37,7 @@ const loadTurnstileScript = (): Promise<void> => {
         }
 
         scriptElement = document.createElement('script');
-        scriptElement.src =
-            'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback&render=explicit';
+        scriptElement.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback&render=explicit';
         scriptElement.async = true;
         scriptElement.defer = true;
         document.head.appendChild(scriptElement);
@@ -122,8 +119,7 @@ onMounted(async () => {
             }
         };
         mediaQuery.addEventListener('change', handler);
-        mediaQueryCleanup = () =>
-            mediaQuery.removeEventListener('change', handler);
+        mediaQueryCleanup = () => mediaQuery.removeEventListener('change', handler);
     }
 });
 
